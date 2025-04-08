@@ -1,1 +1,1 @@
-# VNyanResponsiveController
+# VNyan Responsive Hand Posing
