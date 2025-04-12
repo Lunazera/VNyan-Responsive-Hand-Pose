@@ -10,9 +10,10 @@ using System.Security;
 
 namespace ControllerPose
 {
+    // This is split into two sections, this settings section to call/store all the data, and the Interface implementation below
     public class ResponsiveControllerSettings
     {
-        // Layer On/Off Setting
+        // Layer Settings //
         public static bool layerActive = true; // flag for layer being active or not (when inactive, vnyan will stop reading from the rotations entirely)
         public static void setLayerOnOff(float val) => layerActive = (val == 1f) ? true : false;
 
@@ -21,6 +22,7 @@ namespace ControllerPose
 
         public static string prefix = "LZ_ControllerPoseInput_";
 
+        // Bone number lists to index only these bones sto impact
         public static List<int> ListFingers = new List<int> { 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53 };
         public static List<int> ListFingersLeft = new List<int> { 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38 };
         public static List<int> ListFingersRight = new List<int> { 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53 };
@@ -41,7 +43,30 @@ namespace ControllerPose
 
         // Input Setting Dictionaries // 
 
-        // Has the input condition and then a dictionary of bones to change and vectors to change to
+        // There are two sets of dictionaries here
+
+        // This first set is to store user input of the bone rotations in x/y/z
+        // These are stored as Vector objects (have x/y/z properties)
+
+        // We will maintain "Poses", and each pose will have a number of "Inputs" configured
+        // We keep the Input settings in a separate dictionary
+
+        // For example consider holding a controller
+        // We need to store the "at rest" pose, and the pose for each button input.
+
+        // Right now this is all set up for working with only one pose, but I want to reconfigure this to handle multiple poses and inputs for each
+
+        // We also have a third dictionary for Input states, mainly it is written and read from to track which button inputs are being pressed (and so which pose inputs to activate)
+
+        // ***
+        // *** This whole part is mainly what i need help with. probably makes sense to make into its own class to maintain all the info.
+        // *** since we have properties we want associated with each thing that are linked together
+        // *** like, we want to create many poses. Each pose has a dictionary of its base finger rotations, AND a dictionary of inputs. Each input has its own small dictionary of finger rotations.
+        // *** within each pose, we also want to maintain which input is current on or off. Input names will be vnyan parameters that you should be able to name anything.
+        // so end result is, i should be able to say "turn on controller pose, and now listen for the input names within this pose, and turn on/off the input rotations depending on that" 
+
+
+        // Dictionary of poses
         public static Dictionary<string, Dictionary<int, VNyanVector3>> fingerPoses = new Dictionary<string, Dictionary<int, VNyanVector3>> {
             { "default", new Dictionary<int, VNyanVector3>
                 {
@@ -100,16 +125,30 @@ namespace ControllerPose
         public static Dictionary<string, float> fingerInputStates = new Dictionary<string, float> { };
 
         // will be checked for simulated inputs
+        // this isn't really being used rn i was just trying to find a way to let the program show the input without having to actually presss the button
         public static Dictionary<string, float> fingerInputSimulate = new Dictionary<string, float> { };
 
+        // This just also keeps a list of the names of the inputs to check. this is messy and unneeded probably
         public static List<string> fingerInputConditions = new List<string> { };
-
-        // These lists will store desired user input rotations.
-        // A transformation will need to happen from left to right sides, as many rotations are inverted.
 
 
         // Bone Rotation Dictionaries //
+        // This is the second set of dictionaries
         // This is mainly a 3-dictionary setup, connecting Euler vectors to a target rotation, and then constantly rotating currently-tracked rotations towards the target
+
+        // This layer of dictionaries should be agnostic to the pose and input settings above. 
+
+        // Basically, we do *whatever* stuff to determine what we want the fingers to look like,
+        // and then we write the result to fingerEulersTarget
+        // The program will constantly compare between fingerEulersTarget, fingerRotationsTarget and fingerRotationsCurrent and adjust the rotations accordingly.
+
+        // Logic:
+        // 1. fingerEulersTarget is updated depending on pose and input settings above
+        // 2. Each bone in fingerEulersTarget is written into fingerRotationsTarget, converting to quaternionss
+        // 3. fingerRotationsCurrent bones are rotated towards each corresponding target in fingerRotationsTarget
+        // 4. fingerRotationsCurrent are pushed to show on your model.
+
+        // Overall idea is that the current bone rotation that we will display every frame. Whenever the targets are changed, the current rotations will rotate towards the target.
 
         //  Bone vector targets
         public static Dictionary<int, VNyanVector3> fingerEulersTarget = new Dictionary<int, VNyanVector3>
@@ -219,6 +258,7 @@ namespace ControllerPose
         };
 
         // Input Settings Methods //
+        // Here are the many methods i've set up to do various things, many being getters and setters
 
         public static void setfingerInputState(string conditionName, float setting)
         {
@@ -331,6 +371,7 @@ namespace ControllerPose
         }
 
         // Finger Rotations/Vectors Methods //
+        // Here are the methods more related to actually getting and setting bone rotations. Many of these are used by the UI sliders to make changes to the pose/innput settings.
 
         public static VNyanVector3 getFingerEuler(int boneNum, string pose = "default")
         {
@@ -368,6 +409,7 @@ namespace ControllerPose
             }
         }
 
+        // This is a tuple return to read in the setting related to any given slider.
         public static (float proximal, float middle, float distal, float splay, float twist, bool boneFound) GetFingerInputRotations(int boneNum, int CurlAxis, int SplayAxis, int TwistAxis, bool flipSides, bool flipSplaySides, bool flipTwistSides, string pose = "default", string condition = "default")
         {
             // Get finger bones rotations if it exists
@@ -813,6 +855,7 @@ namespace ControllerPose
         }
 
         // Current/Target Rotation Methods //
+        // These methods do the actual rotation of the models bones with those 3 dictionaries
 
         public static bool checkIfFingerCurrentExists(int boneNum)
         {
@@ -905,6 +948,7 @@ namespace ControllerPose
         }
 
         // User Input Methods //
+        // These are to just get the input states from vnyan parameters
 
         public static void getInputStatesFromVNyan()
         {
@@ -925,6 +969,9 @@ namespace ControllerPose
         }
     }
 
+    // IPoseLayer interface implementation, from VNyanInterface.dll.
+    // We only really need to do our work in doUpdate()
+    // VNyan itself mainly use these methods
     public class ResponsiveControllerLayer : IPoseLayer
     {
         // Set up our frame-by-frame information
@@ -967,6 +1014,7 @@ namespace ControllerPose
             return ResponsiveControllerSettings.layerActive;
         }
 
+        // doUpdate() will run every frame when the layer is on
         public void doUpdate(in PoseLayerFrame ControllerPoseFrame)
         {
             // Get all current Bone and Root values up to this point from our Layer Frame, and load them in our holdover values.
@@ -991,11 +1039,12 @@ namespace ControllerPose
             // Only run once avatar is loaded in
             if (!(VNyanInterface.VNyanInterface.VNyanAvatar == null))
             {
-                // Apply pose to fingers
+                // Get leap motion status
                 leftmotiondetect = VNyanInterface.VNyanInterface.VNyanParameter.getVNyanParameterFloat("leftmotiondetect");
                 rightmotiondetect = VNyanInterface.VNyanInterface.VNyanParameter.getVNyanParameterFloat("rightmotiondetect");
                 MirrorTracking = VNyanInterface.VNyanInterface.VNyanParameter.getVNyanParameterFloat("MirrorTracking");
 
+                // Apply pose to fingers
                 if ( (leftmotiondetect == 0f) && (MirrorTracking == 0f) || (rightmotiondetect == 0f) && (MirrorTracking == 1f) ) 
                 {
                     foreach (int boneNum in ResponsiveControllerSettings.ListFingersLeft)
