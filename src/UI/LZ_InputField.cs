@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace ControllerPose
+namespace ResponsiveControllerPlugin.UI
 {
     class LZ_InputField : MonoBehaviour
     {

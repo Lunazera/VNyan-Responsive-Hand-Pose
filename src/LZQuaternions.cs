@@ -6,7 +6,7 @@ using System.Text;
 using UnityEngine;
 using VNyanInterface;
 
-namespace LZQuaternions
+namespace ResponsiveControllerPlugin
 {
     public class BoneLists
     {

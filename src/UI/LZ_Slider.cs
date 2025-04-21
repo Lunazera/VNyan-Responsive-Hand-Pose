@@ -3,7 +3,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using System;
 
-namespace ControllerPose
+namespace ResponsiveControllerPlugin.UI
 {
     class LZ_Slider : MonoBehaviour
     {
@@ -31,9 +31,11 @@ namespace ControllerPose
             // We add a listener, it will run ValueChangeCheck when the value changes on the slider!
             mainSlider.onValueChanged.AddListener(delegate {ValueChangeCheck(); });
 
-            if (ResponsiveControllerSettings.checkInputCondition(conditionName))
+            ResponsiveControllerLayerSettings settings = ResponsiveControllerPlugin.getLayerSettings();
+
+            if (settings.checkInputCondition(conditionName))
             {
-                mainSlider.value = ResponsiveControllerSettings.getFingerEulerAxis(boneNum, axis, conditionName);
+                mainSlider.value = settings.getFingerEulerAxis(boneNum, axis, conditionName);
             }
             else
             {
@@ -46,10 +48,11 @@ namespace ControllerPose
             float slider_value = invert ? -mainSlider.value : mainSlider.value;
 
             // Check if setting exists & create if not
-            ResponsiveControllerSettings.addInputCondition(conditionName);
+            ResponsiveControllerLayerSettings settings = ResponsiveControllerPlugin.getLayerSettings();
+            settings.addInputCondition(conditionName);
 
             // Check if setting for bone exists within setting & create if not
-            ResponsiveControllerSettings.addInputBone(conditionName, boneNum);
+            settings.addInputBone(conditionName, boneNum);
 
             if (mirrorSides)
             {

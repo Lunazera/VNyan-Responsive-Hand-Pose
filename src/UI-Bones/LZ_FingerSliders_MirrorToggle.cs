@@ -3,7 +3,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using System;
 
-namespace ControllerPose
+namespace ResponsiveControllerPlugin.UI
 {
     class LZ_FingerSliders_MirrorToggle: MonoBehaviour
     {
@@ -131,11 +131,13 @@ namespace ControllerPose
 
         public void ApplyButtonPressCheck()
         {
-            ResponsiveControllerSettings.resetInputSimulateStates();
+            ResponsiveControllerLayerSettings settings = ResponsiveControllerPlugin.getLayerSettings();
+
+            settings.resetInputSimulateStates();
             // We need to sanitate the input a bit. Unless the input can be converted to a float we can't use it.
             if (!(InputSettingField.text == "") )
             {
-                ResponsiveControllerSettings.addInputCondition(InputSettingField.text);
+                settings.addInputCondition(InputSettingField.text);
                 Proximal.InputCondition = Convert.ToString(InputSettingField.text);
                 Middle.InputCondition = Convert.ToString(InputSettingField.text);
                 Distal.InputCondition = Convert.ToString(InputSettingField.text);

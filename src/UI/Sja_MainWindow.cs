@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace ControllerPose
+namespace ResponsiveControllerPlugin.UI
 {
     class Sja_MainWindow : MonoBehaviour, IDragHandler, IPointerDownHandler
     {

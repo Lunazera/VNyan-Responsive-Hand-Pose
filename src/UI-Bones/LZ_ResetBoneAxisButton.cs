@@ -1,14 +1,10 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using Newtonsoft.Json;
-using System.IO;
-using UnityEngine.EventSystems;
-using ControllerPose;
 
 // Removes bone from our setting when clicked
 // Cannot apply to base/default settings
 
-namespace TrackingSmoothing
+namespace ResponsiveControllerPlugin.UI
 {
     class LZ_ResetBoneAxis : MonoBehaviour
     {
@@ -31,11 +27,11 @@ namespace TrackingSmoothing
         {
             if (mirrorSides)
             {
-                ResponsiveControllerSettings.resetFingerSettingsAxisMirror(boneNum, axis, conditionName);
+                ResponsiveControllerPlugin.getLayerSettings().resetFingerSettingsAxisMirror(boneNum, axis, conditionName);
             } 
             else
             {
-                ResponsiveControllerSettings.resetFingerSettingsAxis(boneNum, axis, conditionName);
+                ResponsiveControllerPlugin.getLayerSettings().resetFingerSettingsAxis(boneNum, axis, conditionName);
             }
         }
     }

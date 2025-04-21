@@ -3,12 +3,11 @@ using UnityEngine.UI;
 using Newtonsoft.Json;
 using System.IO;
 using UnityEngine.EventSystems;
-using ControllerPose;
 
 // Removes bone from our setting when clicked
 // Cannot apply to base/default settings
 
-namespace TrackingSmoothing
+namespace ResponsiveControllerPlugin.UI
 {
     class LZ_RemoveInputCondition : MonoBehaviour
     {
@@ -27,7 +26,7 @@ namespace TrackingSmoothing
         {
             if (conditionName != "default")
             {
-                ResponsiveControllerSettings.removeInputCondition(conditionName);
+                ResponsiveControllerPlugin.getLayerSettings().removeInputCondition(conditionName);
             }
         }
     }

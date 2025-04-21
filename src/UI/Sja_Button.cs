@@ -3,7 +3,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using System;
 
-namespace ControllerPose
+namespace ResponsiveControllerPlugin.UI
 {
     class Sja_Button : MonoBehaviour
     {

@@ -1,45 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using VNyanInterface;
-using LZQuaternions;
 using UnityEngine;
-using System.Runtime.CompilerServices;
-using System.Xml.Serialization;
-using static UnityEngine.Random;
-using System.Security;
+using Debug = UnityEngine.Debug;
 
-namespace ControllerPose
+namespace ResponsiveControllerPlugin
 {
     // This is split into two sections, this settings section to call/store all the data, and the Interface implementation below
-    public class ResponsiveControllerSettings
+    public class ResponsiveControllerLayerSettings
     {
-        // Layer Settings //
-        public static bool layerActive = true; // flag for layer being active or not (when inactive, vnyan will stop reading from the rotations entirely)
-        public static void setLayerOnOff(float val) => layerActive = (val == 1f) ? true : false;
-
-        public static float layerActiveLeft = 0f;
-        public static float layerActiveRight = 0f;
-
+        //Prefix for parameters set in VNyan, so they can be easily identified in the Monitor tool
         public static string prefix = "LZ_ControllerPoseInput_";
 
-        // Bone number lists to index only these bones sto impact
-        public static List<int> ListFingers = new List<int> { 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53 };
-        public static List<int> ListFingersLeft = new List<int> { 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38 };
-        public static List<int> ListFingersRight = new List<int> { 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53 };
-        public static int HandLeft = 17;
-        public static int HandRight = 18;
-        
-        public static float slerpAmount = 1f;
+        //If true, Debug.Log messages will be printed out
+        private bool debug = false;
 
-        public static float getSlerpAmount()
-        {
-            return slerpAmount;
-        }
+        // Layer Settings //
+        private bool layerActive = true; // flag for layer being active or not (when inactive, vnyan will stop reading from the rotations entirely)
 
-        public static void setSlerpAmount(float val)
-        {
-            slerpAmount = val;
-        }
+        //private static float layerActiveLeft = 0f;
+        //private static float layerActiveRight = 0f;
+
+        private float slerpAmount = 1f;
 
         // Input Setting Dictionaries // 
 
@@ -67,42 +48,17 @@ namespace ControllerPose
 
 
         // Dictionary of poses
-        public static Dictionary<string, Dictionary<int, VNyanVector3>> fingerPoses = new Dictionary<string, Dictionary<int, VNyanVector3>> {
-            { "default", new Dictionary<int, VNyanVector3>
-                {
-                    { 24, new VNyanVector3 {} },
-                    { 25, new VNyanVector3 {} },
-                    { 26, new VNyanVector3 {} },
-                    { 27, new VNyanVector3 {} },
-                    { 28, new VNyanVector3 {} },
-                    { 29, new VNyanVector3 {} },
-                    { 30, new VNyanVector3 {} },
-                    { 31, new VNyanVector3 {} },
-                    { 32, new VNyanVector3 {} },
-                    { 33, new VNyanVector3 {} },
-                    { 34, new VNyanVector3 {} },
-                    { 35, new VNyanVector3 {} },
-                    { 36, new VNyanVector3 {} },
-                    { 37, new VNyanVector3 {} },
-                    { 38, new VNyanVector3 {} },
-                    { 39, new VNyanVector3 {} },
-                    { 40, new VNyanVector3 {} },
-                    { 41, new VNyanVector3 {} },
-                    { 42, new VNyanVector3 {} },
-                    { 43, new VNyanVector3 {} },
-                    { 44, new VNyanVector3 {} },
-                    { 45, new VNyanVector3 {} },
-                    { 46, new VNyanVector3 {} },
-                    { 47, new VNyanVector3 {} },
-                    { 48, new VNyanVector3 {} },
-                    { 49, new VNyanVector3 {} },
-                    { 50, new VNyanVector3 {} },
-                    { 51, new VNyanVector3 {} },
-                    { 52, new VNyanVector3 {} },
-                    { 53, new VNyanVector3 {} }
-                }
-            }
-        };
+        private Dictionary<string, Dictionary<int, VNyanVector3>> fingerPoses = PoseDictionary.createPoseDictionary();
+
+        public void setFingerPoses(Dictionary<string, Dictionary<int, VNyanVector3>> val)
+        {
+            fingerPoses = val;
+        }
+
+        public Dictionary<string, Dictionary<int, VNyanVector3>> getFingerPoses()
+        {
+            return fingerPoses;
+        }
 
         /*
         // Future Expansion:
@@ -119,18 +75,47 @@ namespace ControllerPose
         */
 
         // Dictionary of inputs that will modify the target eulers after the default
-        public static Dictionary<string, Dictionary<int, VNyanVector3>> fingerInputs = new Dictionary<string, Dictionary<int, VNyanVector3>> { };
+        private Dictionary<string, Dictionary<int, VNyanVector3>> fingerInputs = new Dictionary<string, Dictionary<int, VNyanVector3>> { };
+
+        public void setFingerInputs(Dictionary<string, Dictionary<int, VNyanVector3>> val)
+        {
+            fingerInputs = val;
+        }
+
+        public Dictionary<string, Dictionary<int, VNyanVector3>> getFingerInputs()
+        {
+            return fingerInputs;
+        }
 
         // Dictionary of input settings states, this will track whether a button is pressed or not
-        public static Dictionary<string, float> fingerInputStates = new Dictionary<string, float> { };
+        private Dictionary<string, float> fingerInputStates = new Dictionary<string, float> { };
+
+        public void setFingerInputStates(Dictionary<string, float> val)
+        {
+            fingerInputStates = val;
+        }
+
+        public Dictionary<string, float> getFingerInputStates()
+        {
+            return fingerInputStates;
+        }
 
         // will be checked for simulated inputs
         // this isn't really being used rn i was just trying to find a way to let the program show the input without having to actually presss the button
-        public static Dictionary<string, float> fingerInputSimulate = new Dictionary<string, float> { };
+        private Dictionary<string, float> fingerInputSimulate = new Dictionary<string, float> { };
 
         // This just also keeps a list of the names of the inputs to check. this is messy and unneeded probably
-        public static List<string> fingerInputConditions = new List<string> { };
+        private List<string> fingerInputConditions = new List<string> { };
 
+        public void setFingerInputConditions(List<string> val)
+        {
+            fingerInputConditions = val;
+        }
+
+        public List<string> getFingerInputConditions()
+        {
+            return fingerInputConditions;
+        }
 
         // Bone Rotation Dictionaries //
         // This is the second set of dictionaries
@@ -151,116 +136,73 @@ namespace ControllerPose
         // Overall idea is that the current bone rotation that we will display every frame. Whenever the targets are changed, the current rotations will rotate towards the target.
 
         //  Bone vector targets
-        public static Dictionary<int, VNyanVector3> fingerEulersTarget = new Dictionary<int, VNyanVector3>
-        {
-            { 24, new VNyanVector3 {} },
-            { 25, new VNyanVector3 {} },
-            { 26, new VNyanVector3 {} },
-            { 27, new VNyanVector3 {} },
-            { 28, new VNyanVector3 {} },
-            { 29, new VNyanVector3 {} },
-            { 30, new VNyanVector3 {} },
-            { 31, new VNyanVector3 {} },
-            { 32, new VNyanVector3 {} },
-            { 33, new VNyanVector3 {} },
-            { 34, new VNyanVector3 {} },
-            { 35, new VNyanVector3 {} },
-            { 36, new VNyanVector3 {} },
-            { 37, new VNyanVector3 {} },
-            { 38, new VNyanVector3 {} },
-            { 39, new VNyanVector3 {} },
-            { 40, new VNyanVector3 {} },
-            { 41, new VNyanVector3 {} },
-            { 42, new VNyanVector3 {} },
-            { 43, new VNyanVector3 {} },
-            { 44, new VNyanVector3 {} },
-            { 45, new VNyanVector3 {} },
-            { 46, new VNyanVector3 {} },
-            { 47, new VNyanVector3 {} },
-            { 48, new VNyanVector3 {} },
-            { 49, new VNyanVector3 {} },
-            { 50, new VNyanVector3 {} },
-            { 51, new VNyanVector3 {} },
-            { 52, new VNyanVector3 {} },
-            { 53, new VNyanVector3 {} }
-        };
+        private Dictionary<int, VNyanVector3> fingerEulersTarget = PoseDictionary.createVectorDictionary();
 
         // Bone Targets
         // this is a dictionary of the target rotations that will be maintained constantly
-        public static Dictionary<int, VNyanQuaternion> fingerRotationsTarget = new Dictionary<int, VNyanQuaternion>
-        {
-            { 24, new VNyanQuaternion{} },
-            { 25, new VNyanQuaternion{} },
-            { 26, new VNyanQuaternion{} },
-            { 27, new VNyanQuaternion{} },
-            { 28, new VNyanQuaternion{} },
-            { 29, new VNyanQuaternion{} },
-            { 30, new VNyanQuaternion{} },
-            { 31, new VNyanQuaternion{} },
-            { 32, new VNyanQuaternion{} },
-            { 33, new VNyanQuaternion{} },
-            { 34, new VNyanQuaternion{} },
-            { 35, new VNyanQuaternion{} },
-            { 36, new VNyanQuaternion{} },
-            { 37, new VNyanQuaternion{} },
-            { 38, new VNyanQuaternion{} },
-            { 39, new VNyanQuaternion{} },
-            { 40, new VNyanQuaternion{} },
-            { 41, new VNyanQuaternion{} },
-            { 42, new VNyanQuaternion{} },
-            { 43, new VNyanQuaternion{} },
-            { 44, new VNyanQuaternion{} },
-            { 45, new VNyanQuaternion{} },
-            { 46, new VNyanQuaternion{} },
-            { 47, new VNyanQuaternion{} },
-            { 48, new VNyanQuaternion{} },
-            { 49, new VNyanQuaternion{} },
-            { 50, new VNyanQuaternion{} },
-            { 51, new VNyanQuaternion{} },
-            { 52, new VNyanQuaternion{} },
-            { 53, new VNyanQuaternion{} }
-        };
+        private Dictionary<int, VNyanQuaternion> fingerRotationsTarget = PoseDictionary.createQuaternionDictionary();
 
 
         // Bone Current
-        public static Dictionary<int, VNyanQuaternion> fingerRotationsCurrent = new Dictionary<int, VNyanQuaternion>
-        {
-            { 24, new VNyanQuaternion{} },
-            { 25, new VNyanQuaternion{} },
-            { 26, new VNyanQuaternion{} },
-            { 27, new VNyanQuaternion{} },
-            { 28, new VNyanQuaternion{} },
-            { 29, new VNyanQuaternion{} },
-            { 30, new VNyanQuaternion{} },
-            { 31, new VNyanQuaternion{} },
-            { 32, new VNyanQuaternion{} },
-            { 33, new VNyanQuaternion{} },
-            { 34, new VNyanQuaternion{} },
-            { 35, new VNyanQuaternion{} },
-            { 36, new VNyanQuaternion{} },
-            { 37, new VNyanQuaternion{} },
-            { 38, new VNyanQuaternion{} },
-            { 39, new VNyanQuaternion{} },
-            { 40, new VNyanQuaternion{} },
-            { 41, new VNyanQuaternion{} },
-            { 42, new VNyanQuaternion{} },
-            { 43, new VNyanQuaternion{} },
-            { 44, new VNyanQuaternion{} },
-            { 45, new VNyanQuaternion{} },
-            { 46, new VNyanQuaternion{} },
-            { 47, new VNyanQuaternion{} },
-            { 48, new VNyanQuaternion{} },
-            { 49, new VNyanQuaternion{} },
-            { 50, new VNyanQuaternion{} },
-            { 51, new VNyanQuaternion{} },
-            { 52, new VNyanQuaternion{} },
-            { 53, new VNyanQuaternion{} }
-        };
+        private Dictionary<int, VNyanQuaternion> fingerRotationsCurrent = PoseDictionary.createQuaternionDictionary();
 
         // Input Settings Methods //
         // Here are the many methods i've set up to do various things, many being getters and setters
 
-        public static void setfingerInputState(string conditionName, float setting)
+        /**
+         * Sets whether to print debug messages to the log
+         */
+        public void setDebug(bool val)
+        {
+            debug = val;
+        }
+
+        /**
+         * Gets the current debug value.
+         */
+        public bool isDebug()
+        {
+            return debug;
+        }
+
+        /**
+         * TODO Add description
+         */
+        public float getSlerpAmount()
+        {
+            return slerpAmount;
+        }
+
+        /**
+         * TODO Add description
+         */
+        public void setSlerpAmount(float val)
+        {
+            slerpAmount = val;
+        }
+
+        /**
+         * TODO Add description
+         */
+        public Dictionary<int, VNyanQuaternion> getfingerRotationsCurrent()
+        {
+            return fingerRotationsCurrent;
+        }
+
+        /**
+         * TODO Add description
+         */
+        public void setLayerOnOff(float val) => layerActive = (val == 1f) ? true : false;
+
+        /**
+         * TODO Add description
+         */
+        public bool isLayerActive() => layerActive;
+
+        /**
+         * TODO Add description
+         */
+        public void setfingerInputState(string conditionName, float setting)
         {
             // Changes condition setting if input condition exists
             if ( checkInputCondition(conditionName) )
@@ -269,7 +211,10 @@ namespace ControllerPose
             }
         }
 
-        public static void setfingerInputStateOn(string conditionName)
+        /**
+         * TODO Add description
+         */
+        public void setfingerInputStateOn(string conditionName)
         {
             // Sets condition setting on if it exists
             if (checkInputCondition(conditionName))
@@ -278,7 +223,10 @@ namespace ControllerPose
             }
         }
 
-        public static void setfingerInputStateOff(string conditionName)
+        /**
+         * TODO Add description
+         */
+        public void setfingerInputStateOff(string conditionName)
         {
             // Sets condition setting off if it exists
             if (checkInputCondition(conditionName))
@@ -287,7 +235,10 @@ namespace ControllerPose
             }
         }
 
-        public static float getFingerInputState(string conditionName)
+        /**
+         * TODO Add description
+         */
+        public float getFingerInputState(string conditionName)
         {
             // Returns the input setting state
             if (checkInputCondition(conditionName))
@@ -300,12 +251,15 @@ namespace ControllerPose
             }
         }
 
-        public static void addInputCondition(string conditionName)
+        /**
+         * TODO Add description
+         */
+        public void addInputCondition(string conditionName)
         {
             // Adds input condition if it doesn't exist
             if ( !fingerInputs.ContainsKey(conditionName) )
             {
-                Debug.Log("LZ_Controller: Input '" + conditionName + "' Not found, creating entry...");
+                if(debug) Debug.Log("LZ_Controller: Input '" + conditionName + "' Not found, creating entry...");
                 fingerInputs.Add(conditionName, new Dictionary<int, VNyanVector3> { });
                 fingerInputStates.Add(conditionName, 0f);
                 fingerInputConditions.Add(conditionName);
@@ -313,7 +267,10 @@ namespace ControllerPose
             }
         }
 
-        public static void addInputBone(string conditionName, int boneNum)
+        /**
+         * TODO Add description
+         */
+        public void addInputBone(string conditionName, int boneNum)
         {
             // Adds bone into input condition if it exists. If condition doesn't exist, creates it first
             if ( fingerInputs.ContainsKey(conditionName) )
@@ -329,12 +286,16 @@ namespace ControllerPose
                 fingerInputs[conditionName].Add(boneNum, new VNyanVector3 { });
             }
         }
-        public static void removeInputCondition(string conditionName)
+
+        /**
+         * TODO Add description
+         */
+        public void removeInputCondition(string conditionName)
         {
             if ( fingerInputs.ContainsKey(conditionName) )
             {
                 // Removes input condition from settings
-                Debug.Log("LZ_Controller: Removing input '" + conditionName + "'...");
+                if (debug) Debug.Log("LZ_Controller: Removing input '" + conditionName + "'...");
                 fingerInputs.Remove(conditionName);
                 fingerInputStates.Remove(conditionName);
                 fingerInputConditions.Remove(conditionName);
@@ -342,7 +303,10 @@ namespace ControllerPose
             }
         }
 
-        public static void removeInputBone(string conditionName, int boneNum)
+        /**
+         * TODO Add description
+         */
+        public void removeInputBone(string conditionName, int boneNum)
         {
             // Removes bone from input condition if it exists
             if ( checkInputConditionBone(conditionName, boneNum) )
@@ -351,13 +315,19 @@ namespace ControllerPose
             }
         }
 
-        public static bool checkInputCondition(string conditionName)
+        /**
+         * TODO Add description
+         */
+        public bool checkInputCondition(string conditionName)
         {
             // Check if setting exists
             return (fingerInputs.ContainsKey(conditionName) && fingerInputStates.ContainsKey(conditionName) );
         }
 
-        public static bool checkInputConditionBone(string conditionName, int boneNum)
+        /**
+         * TODO Add description
+         */
+        public bool checkInputConditionBone(string conditionName, int boneNum)
         {
             // Check if bone exists in input condition
             if (fingerInputs.ContainsKey(conditionName) )
@@ -372,8 +342,11 @@ namespace ControllerPose
 
         // Finger Rotations/Vectors Methods //
         // Here are the methods more related to actually getting and setting bone rotations. Many of these are used by the UI sliders to make changes to the pose/innput settings.
-
-        public static VNyanVector3 getFingerEuler(int boneNum, string pose = "default")
+        
+        /**
+         * TODO Add description
+         */
+        public VNyanVector3 getFingerEuler(int boneNum, string pose = "default")
         {
             // Get finger vector if it exists
             if ( fingerEulersTarget.ContainsKey(boneNum) )
@@ -386,7 +359,10 @@ namespace ControllerPose
             }
         }
 
-        public static float getFingerEulerAxis(int boneNum, int axis, string pose = "default")
+        /**
+         * TODO Add description
+         */
+        public float getFingerEulerAxis(int boneNum, int axis, string pose = "default")
         {
             // Get finger rotation along axis if it exists
             if ( fingerEulersTarget.ContainsKey(boneNum) )
@@ -410,7 +386,10 @@ namespace ControllerPose
         }
 
         // This is a tuple return to read in the setting related to any given slider.
-        public static (float proximal, float middle, float distal, float splay, float twist, bool boneFound) GetFingerInputRotations(int boneNum, int CurlAxis, int SplayAxis, int TwistAxis, bool flipSides, bool flipSplaySides, bool flipTwistSides, string pose = "default", string condition = "default")
+        /**
+         * TODO Add description
+         */
+        public (float proximal, float middle, float distal, float splay, float twist, bool boneFound) GetFingerInputRotations(int boneNum, int CurlAxis, int SplayAxis, int TwistAxis, bool flipSides, bool flipSplaySides, bool flipTwistSides, string pose = "default", string condition = "default")
         {
             // Get finger bones rotations if it exists
 
@@ -548,7 +527,10 @@ namespace ControllerPose
             return (proximal, middle, distal, splay, twist, boneFound);
         }
 
-        public static (float proximal, float middle, float distal, float splay, float twist, bool boneFound) GetFingerPoseRotations(int boneNum, int CurlAxis, int SplayAxis, int TwistAxis, bool flipSides, bool flipSplaySides, bool flipTwistSides)
+        /**
+         * TODO Add description
+         */
+        public (float proximal, float middle, float distal, float splay, float twist, bool boneFound) GetFingerPoseRotations(int boneNum, int CurlAxis, int SplayAxis, int TwistAxis, bool flipSides, bool flipSplaySides, bool flipTwistSides)
         {
             // Get finger bones rotations if it exists
 
@@ -635,8 +617,10 @@ namespace ControllerPose
             return (proximal, middle, distal, splay, twist, boneFound);  
         }
 
-
-        public static void setInputBone(string conditionName, int boneNum, int axis, float angle)
+        /**
+         * TODO Add description
+         */
+        public void setInputBone(string conditionName, int boneNum, int axis, float angle)
         {
             // TODO: add in converstion for left/right side
             addInputCondition(conditionName);
@@ -676,7 +660,10 @@ namespace ControllerPose
             } 
         }
 
-        public static void setFingerSettingsAxisMirror(int boneNum, int axis, float angle, bool flip,  string conditionName)
+        /**
+         * TODO Add description
+         */
+        public void setFingerSettingsAxisMirror(int boneNum, int axis, float angle, bool flip,  string conditionName)
         {
             // Set finger rotation setting according to axis mirrored L and R
             float angleflip = flip ? -angle : angle;
@@ -692,7 +679,7 @@ namespace ControllerPose
 
             if ( conditionName == "default" )
             {
-                Debug.Log("Setting default bone " + boneNum);
+                if (debug) Debug.Log("Setting default bone " + boneNum);
                 switch (axis)
                 {
                     case 0:
@@ -711,7 +698,7 @@ namespace ControllerPose
             }
             else
             {
-                Debug.Log("Setting input '" + conditionName + "' bone " + boneNum);
+                if (debug) Debug.Log("Setting input '" + conditionName + "' bone " + boneNum);
                 switch (axis)
                 {
                     case 0:
@@ -730,7 +717,10 @@ namespace ControllerPose
             }
         }
 
-        public static void setFingerSettingsAxis(int boneNum, int axis, float angle, string conditionName = "default")
+        /**
+         * TODO Add description
+         */
+        public void setFingerSettingsAxis(int boneNum, int axis, float angle, string conditionName = "default")
         {
             // Set finger rotation setting according to axis
             addInputCondition(conditionName);
@@ -768,7 +758,10 @@ namespace ControllerPose
             }
         }
 
-        public static void resetFingerSettingsAxisMirror(int boneNum, int axis, string conditionName = "default")
+        /**
+         * TODO Add description
+         */
+        public void resetFingerSettingsAxisMirror(int boneNum, int axis, string conditionName = "default")
         {
             // Sets finger rotations in axis to 0 for L and R
             addInputCondition(conditionName);
@@ -815,7 +808,10 @@ namespace ControllerPose
             }
         }
 
-        public static void resetFingerSettingsAxis(int boneNum, int axis, string conditionName = "default")
+        /**
+         * TODO Add description
+         */
+        public void resetFingerSettingsAxis(int boneNum, int axis, string conditionName = "default")
         {
 
             // Sets finger rotations in axis to 0
@@ -857,38 +853,54 @@ namespace ControllerPose
         // Current/Target Rotation Methods //
         // These methods do the actual rotation of the models bones with those 3 dictionaries
 
-        public static bool checkIfFingerCurrentExists(int boneNum)
+        /**
+         * TODO Add description
+         */
+        public bool checkIfFingerCurrentExists(int boneNum)
         {
             // Checks if the bone exists in the current dictionary
             return fingerRotationsCurrent.ContainsKey(boneNum);
         }
 
-        public static void initTargetRotations()
+        /**
+         * TODO Add description
+         */
+        public void initTargetRotations()
         {
             // Sets all target rotations from euler settings
-            foreach (int boneNum in ListFingers)
+            foreach (int boneNum in PoseDictionary.getHandsBoneIndices())
             {
                 VNyanVector3 eulers = getFingerEuler(boneNum);
-                fingerRotationsTarget[boneNum] = LZQuaternions.QuaternionMethods.setFromVNyanVector3(eulers);
+                fingerRotationsTarget[boneNum] = QuaternionMethods.setFromVNyanVector3(eulers);
             }
         }
 
-        public static void initCurrentRotations(Dictionary<int, VNyanQuaternion> boneRotations)
+        /**
+         * TODO Add description
+         */
+        public void initCurrentRotations(Dictionary<int, VNyanQuaternion> boneRotations)
         {
             // Set current pose to target
-            foreach (int boneNum in ListFingers)
+            foreach (int boneNum in PoseDictionary.getHandsBoneIndices())
             {
                 fingerRotationsCurrent[boneNum] = boneRotations[boneNum];
             }
         }
 
         // These three "setEulerTarget" methods connect the input settings to the main Euler Targets dictionary that gets read from
-        public static void setEulerTarget(int boneNum, VNyanVector3 vector)
+        /**
+         * TODO Add description
+         */
+        public void setEulerTarget(int boneNum, VNyanVector3 vector)
         {
             fingerEulersTarget[boneNum] = vector;
         }
 
-        public static void setEulerTargetsDefault()
+        /**
+         * TODO Add description
+         */
+
+        public void setEulerTargetsDefault()
         {
             foreach (KeyValuePair<int, VNyanVector3> vector in fingerPoses["default"])
             {
@@ -896,7 +908,11 @@ namespace ControllerPose
             }
         }
 
-        public static void setEulerTargetsInputs()
+        /**
+         * TODO Add description
+         */
+
+        public void setEulerTargetsInputs()
         {
             // Set the target vector dictionary from settings, including current inputs
             // Go through the input state dictionary, for each if value is on, we will read from the corresponding input settings dictionary
@@ -915,13 +931,16 @@ namespace ControllerPose
             }
         }
 
-        public static void setFingerTargets()
+        /**
+         * TODO Add description
+         */
+        public void setFingerTargets()
         {
             // Set the target rotations from the target vectors
-            foreach (int boneNum in ListFingers)
+            foreach (int boneNum in PoseDictionary.getHandsBoneIndices())
             {
                 VNyanVector3 eulers = getFingerEuler(boneNum);
-                VNyanQuaternion targetRotation = LZQuaternions.QuaternionMethods.setFromVNyanVector3(eulers);
+                VNyanQuaternion targetRotation = QuaternionMethods.setFromVNyanVector3(eulers);
 
                 if ( !(targetRotation == fingerRotationsTarget[boneNum]) )
                 {
@@ -930,18 +949,21 @@ namespace ControllerPose
             }
         }
 
-        public static void rotateCurrentTowardsTarget()
+        /**
+         * TODO Add description
+         */
+        public void rotateCurrentTowardsTarget()
         {
             // Rotate every bone's current rotation Towards Target
-            foreach (int boneNum in ListFingers)
+            foreach (int boneNum in PoseDictionary.getHandsBoneIndices())
             {
                 VNyanQuaternion target = fingerRotationsTarget[boneNum];
                 VNyanQuaternion current = fingerRotationsCurrent[boneNum];
 
                 if ( !(current == target) )
                 {
-                    Quaternion newRotation = Quaternion.Slerp(LZQuaternions.QuaternionMethods.convertQuaternionV2U(current), LZQuaternions.QuaternionMethods.convertQuaternionV2U(target), slerpAmount * Time.deltaTime);
-                    fingerRotationsCurrent[boneNum] = LZQuaternions.QuaternionMethods.convertQuaternionU2V(newRotation);
+                    Quaternion newRotation = Quaternion.Slerp(QuaternionMethods.convertQuaternionV2U(current), QuaternionMethods.convertQuaternionV2U(target), slerpAmount * Time.deltaTime);
+                    fingerRotationsCurrent[boneNum] = QuaternionMethods.convertQuaternionU2V(newRotation);
                     // fingerRotationsCurrent[boneNum] = target; 
                 }
             }
@@ -950,7 +972,10 @@ namespace ControllerPose
         // User Input Methods //
         // These are to just get the input states from vnyan parameters
 
-        public static void getInputStatesFromVNyan()
+        /**
+         * TODO Add description
+         */
+        public void getInputStatesFromVNyan()
         {
             // Get current input states from VNyan
             foreach (string condition in fingerInputConditions)
@@ -959,113 +984,17 @@ namespace ControllerPose
             }
         }
 
-        public static void resetInputSimulateStates()
+        /**
+         * TODO Add description
+         */
+
+        public void resetInputSimulateStates()
         {
             // Get current input states from VNyan
             foreach (string condition in fingerInputConditions)
             {
                 VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat(condition, 0f);
             }
-        }
-    }
-
-    // IPoseLayer interface implementation, from VNyanInterface.dll.
-    // We only really need to do our work in doUpdate()
-    // VNyan itself mainly use these methods
-    public class ResponsiveControllerLayer : IPoseLayer
-    {
-        // Set up our frame-by-frame information
-        public PoseLayerFrame ControllerPoseFrame = new PoseLayerFrame();
-
-        // Create containers to load pose data each frame
-        public Dictionary<int, VNyanQuaternion> BoneRotations;
-        public Dictionary<int, VNyanVector3> BonePositions;
-        public Dictionary<int, VNyanVector3> BoneScales;
-        public VNyanVector3 RootPos;
-        public VNyanQuaternion RootRot;
-
-        public float leftmotiondetect = 0f;
-        public float rightmotiondetect = 0f;
-        public float MirrorTracking = 0f;
-
-        // VNyan Get Methods, VNyan uses these to get the pose after doUpdate()
-        VNyanVector3 IPoseLayer.getBonePosition(int i)
-        {
-            return BonePositions[i];
-        }
-        VNyanQuaternion IPoseLayer.getBoneRotation(int i)
-        {
-            return BoneRotations[i];
-        }
-        VNyanVector3 IPoseLayer.getBoneScaleMultiplier(int i)
-        {
-            return BoneScales[i];
-        }
-        VNyanVector3 IPoseLayer.getRootPosition()
-        {
-            return RootPos;
-        }
-        VNyanQuaternion IPoseLayer.getRootRotation()
-        {
-            return RootRot;
-        }
-        bool IPoseLayer.isActive()
-        {
-            return ResponsiveControllerSettings.layerActive;
-        }
-
-        // doUpdate() will run every frame when the layer is on
-        public void doUpdate(in PoseLayerFrame ControllerPoseFrame)
-        {
-            // Get all current Bone and Root values up to this point from our Layer Frame, and load them in our holdover values.
-            BoneRotations = ControllerPoseFrame.BoneRotation;
-            BonePositions = ControllerPoseFrame.BonePosition;
-            BoneScales = ControllerPoseFrame.BoneScaleMultiplier;
-            RootPos = ControllerPoseFrame.RootPosition;
-            RootRot = ControllerPoseFrame.RootRotation;
-
-            // Set euler vector targets from settings
-            ResponsiveControllerSettings.setEulerTargetsDefault();
-
-            // Set the input condition settings depending on state
-            ResponsiveControllerSettings.setEulerTargetsInputs();
-
-            // Set rotation targets from vector targets
-            ResponsiveControllerSettings.setFingerTargets();
-
-            // Rotate current quats to rotation target 
-            ResponsiveControllerSettings.rotateCurrentTowardsTarget();
-
-            // Only run once avatar is loaded in
-            if (!(VNyanInterface.VNyanInterface.VNyanAvatar == null))
-            {
-                // Get leap motion status
-                leftmotiondetect = VNyanInterface.VNyanInterface.VNyanParameter.getVNyanParameterFloat("leftmotiondetect");
-                rightmotiondetect = VNyanInterface.VNyanInterface.VNyanParameter.getVNyanParameterFloat("rightmotiondetect");
-                MirrorTracking = VNyanInterface.VNyanInterface.VNyanParameter.getVNyanParameterFloat("MirrorTracking");
-
-                // Apply pose to fingers
-                if ( (leftmotiondetect == 0f) && (MirrorTracking == 0f) || (rightmotiondetect == 0f) && (MirrorTracking == 1f) ) 
-                {
-                    foreach (int boneNum in ResponsiveControllerSettings.ListFingersLeft)
-                    {
-                        if (ResponsiveControllerSettings.checkIfFingerCurrentExists(boneNum))
-                        {
-                            BoneRotations[boneNum] = ResponsiveControllerSettings.fingerRotationsCurrent[boneNum];
-                        }
-                    }
-                }
-                if ((rightmotiondetect == 0f) && (MirrorTracking == 0f) || (leftmotiondetect == 0f) && (MirrorTracking == 1f))
-                {
-                    foreach (int boneNum in ResponsiveControllerSettings.ListFingersRight)
-                    {
-                        if (ResponsiveControllerSettings.checkIfFingerCurrentExists(boneNum))
-                        {
-                            BoneRotations[boneNum] = ResponsiveControllerSettings.fingerRotationsCurrent[boneNum];
-                        }
-                    }
-                }
-            }  
         }
     }
 }
