@@ -135,7 +135,7 @@ namespace ResponsiveControllerPlugin
                 // Apply pose to fingers
                 if ((leftmotiondetect == 0f) && (MirrorTracking == 0f) || (rightmotiondetect == 0f) && (MirrorTracking == 1f))
                 {
-                    foreach (int boneNum in PoseDictionary.getLeftHandBoneIndices())
+                    foreach (int boneNum in PoseUtils.getLeftHandBoneIndices())
                     {
                         if (settings.checkIfFingerCurrentExists(boneNum))
                         {
@@ -145,7 +145,7 @@ namespace ResponsiveControllerPlugin
                 }
                 if ((rightmotiondetect == 0f) && (MirrorTracking == 0f) || (leftmotiondetect == 0f) && (MirrorTracking == 1f))
                 {
-                    foreach (int boneNum in PoseDictionary.getRightHandBoneIndices())
+                    foreach (int boneNum in PoseUtils.getRightHandBoneIndices())
                     {
                         if (settings.checkIfFingerCurrentExists(boneNum))
                         {

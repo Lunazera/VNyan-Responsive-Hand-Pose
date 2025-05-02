@@ -22,6 +22,8 @@ namespace ResponsiveControllerPlugin
 
         private float slerpAmount = 1f;
 
+        private Pose defaultPose = PoseUtils.createNewDefaultHandsPose();
+
         // Input Setting Dictionaries // 
 
         // There are two sets of dictionaries here
@@ -48,6 +50,7 @@ namespace ResponsiveControllerPlugin
 
 
         // Dictionary of poses
+        /*
         private Dictionary<string, Dictionary<int, VNyanVector3>> fingerPoses = PoseDictionary.createPoseDictionary();
 
         public void setFingerPoses(Dictionary<string, Dictionary<int, VNyanVector3>> val)
@@ -60,19 +63,17 @@ namespace ResponsiveControllerPlugin
             return fingerPoses;
         }
 
-        /*
         // Future Expansion:
         // Set up dictionaries so we can have a separate layer for different controller poses
         // Maybe better to even set up an object for each pose?
         // Input conditions should then exist within each pose object
 
-        public static Dictionary<string, Dictionary<string, Dictionary<int, VNyanVector3>>> fingerPoseInputs = new Dictionary<string, Dictionary<string, Dictionary<int, VNyanVector3>>> {
-            { "default", new Dictionary<string, Dictionary<int, VNyanVector3>>
-                {
-                }
-            }
-        };
-        */
+        //public static Dictionary<string, Dictionary<string, Dictionary<int, VNyanVector3>>> fingerPoseInputs = new Dictionary<string, Dictionary<string, Dictionary<int, VNyanVector3>>> {
+        //    { "default", new Dictionary<string, Dictionary<int, VNyanVector3>>
+        //       {
+        //        }
+        //    }
+        //};
 
         // Dictionary of inputs that will modify the target eulers after the default
         private Dictionary<string, Dictionary<int, VNyanVector3>> fingerInputs = new Dictionary<string, Dictionary<int, VNyanVector3>> { };
@@ -100,10 +101,6 @@ namespace ResponsiveControllerPlugin
             return fingerInputStates;
         }
 
-        // will be checked for simulated inputs
-        // this isn't really being used rn i was just trying to find a way to let the program show the input without having to actually presss the button
-        private Dictionary<string, float> fingerInputSimulate = new Dictionary<string, float> { };
-
         // This just also keeps a list of the names of the inputs to check. this is messy and unneeded probably
         private List<string> fingerInputConditions = new List<string> { };
 
@@ -116,6 +113,11 @@ namespace ResponsiveControllerPlugin
         {
             return fingerInputConditions;
         }
+        */
+
+        // will be checked for simulated inputs
+        // this isn't really being used rn i was just trying to find a way to let the program show the input without having to actually presss the button
+        private Dictionary<string, float> fingerInputSimulate = new Dictionary<string, float> { };
 
         // Bone Rotation Dictionaries //
         // This is the second set of dictionaries
@@ -136,15 +138,15 @@ namespace ResponsiveControllerPlugin
         // Overall idea is that the current bone rotation that we will display every frame. Whenever the targets are changed, the current rotations will rotate towards the target.
 
         //  Bone vector targets
-        private Dictionary<int, VNyanVector3> fingerEulersTarget = PoseDictionary.createVectorDictionary();
+        private Dictionary<int, VNyanVector3> fingerEulersTarget = PoseUtils.createVectorDictionary();
 
         // Bone Targets
         // this is a dictionary of the target rotations that will be maintained constantly
-        private Dictionary<int, VNyanQuaternion> fingerRotationsTarget = PoseDictionary.createQuaternionDictionary();
+        private Dictionary<int, VNyanQuaternion> fingerRotationsTarget = PoseUtils.createQuaternionDictionary();
 
 
         // Bone Current
-        private Dictionary<int, VNyanQuaternion> fingerRotationsCurrent = PoseDictionary.createQuaternionDictionary();
+        private Dictionary<int, VNyanQuaternion> fingerRotationsCurrent = PoseUtils.createQuaternionDictionary();
 
         // Input Settings Methods //
         // Here are the many methods i've set up to do various things, many being getters and setters
@@ -207,7 +209,7 @@ namespace ResponsiveControllerPlugin
             // Changes condition setting if input condition exists
             if ( checkInputCondition(conditionName) )
             {
-                fingerInputStates[conditionName] = setting;
+                defaultPose.getFingerInputStates()[conditionName] = setting;
             }
         }
 
@@ -219,7 +221,7 @@ namespace ResponsiveControllerPlugin
             // Sets condition setting on if it exists
             if (checkInputCondition(conditionName))
             {
-                fingerInputStates[conditionName] = 1f;
+                defaultPose.getFingerInputStates()[conditionName] = 1f;
             }
         }
 
@@ -231,7 +233,7 @@ namespace ResponsiveControllerPlugin
             // Sets condition setting off if it exists
             if (checkInputCondition(conditionName))
             {
-                fingerInputStates[conditionName] = 0f;
+                defaultPose.getFingerInputStates()[conditionName] = 0f;
             }
         }
 
@@ -243,7 +245,7 @@ namespace ResponsiveControllerPlugin
             // Returns the input setting state
             if (checkInputCondition(conditionName))
             {
-                return fingerInputStates[conditionName];
+                return defaultPose.getFingerInputStates()[conditionName];
             }
             else
             {
@@ -257,12 +259,12 @@ namespace ResponsiveControllerPlugin
         public void addInputCondition(string conditionName)
         {
             // Adds input condition if it doesn't exist
-            if ( !fingerInputs.ContainsKey(conditionName) )
+            if ( !defaultPose.getInputPoses().ContainsKey(conditionName) )
             {
                 if(debug) Debug.Log("LZ_Controller: Input '" + conditionName + "' Not found, creating entry...");
-                fingerInputs.Add(conditionName, new Dictionary<int, VNyanVector3> { });
-                fingerInputStates.Add(conditionName, 0f);
-                fingerInputConditions.Add(conditionName);
+                defaultPose.getInputPoses().Add(conditionName, new Pose { });
+                defaultPose.getFingerInputStates().Add(conditionName, 0f);
+                defaultPose.getFingerInputConditions().Add(conditionName);
                 VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat(prefix + conditionName, 0f);
             }
         }
@@ -273,11 +275,11 @@ namespace ResponsiveControllerPlugin
         public void addInputBone(string conditionName, int boneNum)
         {
             // Adds bone into input condition if it exists. If condition doesn't exist, creates it first
-            if ( fingerInputs.ContainsKey(conditionName) )
+            if (defaultPose.getInputPoses().ContainsKey(conditionName) )
             {
                 if ( !checkInputConditionBone(conditionName, boneNum) )
                 {
-                    fingerInputs[conditionName].Add(boneNum, new VNyanVector3 { });
+                    defaultPose.getInputPoses()[conditionName].Add(boneNum, new VNyanVector3 { });
                 }
             } 
             else

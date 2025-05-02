@@ -5,8 +5,10 @@ using VNyanInterface;
 
 namespace ResponsiveControllerPlugin
 {
-    class PoseDictionary
+    class PoseUtils
     {
+        public static string defaultPoseName = "default";
+
         //Indices of bones on the left hand
         private static List<int> ListFingersLeft = new List<int> { 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38 };
         //Indices of bones on the right hand
@@ -41,12 +43,23 @@ namespace ResponsiveControllerPlugin
         // *** within each pose, we also want to maintain which input is current on or off. Input names will be vnyan parameters that you should be able to name anything.
         // so end result is, i should be able to say "turn on controller pose, and now listen for the input names within this pose, and turn on/off the input rotations depending on that"
 
-        public static Dictionary<string, Dictionary<int, VNyanVector3>> createPoseDictionary()
+        public static Dictionary<string, Pose> createPoseDictionary()
         {
-            Dictionary<string, Dictionary<int, VNyanVector3>> fingerPoses = new Dictionary<string, Dictionary<int, VNyanVector3>> { };
-            Dictionary<int, VNyanVector3> defaultDic = PoseDictionary.createVectorDictionary();
-            fingerPoses.Add("default", defaultDic);
+            Dictionary<string, Pose> fingerPoses = new Dictionary<string, Pose> { };
+            Pose defaultPose = PoseUtils.createNewHandsPose(defaultPoseName);
+            fingerPoses.Add(defaultPoseName, defaultPose);
             return fingerPoses;
+        }
+
+        public static Pose createNewDefaultHandsPose()
+        {
+            return PoseUtils.createNewHandsPose(defaultPoseName);
+
+        }
+
+        public static Pose createNewHandsPose(string name)
+        {
+            return new Pose(name, ListFingers);
         }
 
         public static Dictionary<int, VNyanVector3> createVectorDictionary()
