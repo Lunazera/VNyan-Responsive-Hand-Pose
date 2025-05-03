@@ -70,5 +70,8 @@ namespace ResponsiveControllerPlugin
             this.eulerRotation = eulerRotation;
             this.rotation = rotation;
         }
+
+        // Methods
+        
     }
 }

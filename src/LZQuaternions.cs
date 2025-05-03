@@ -64,6 +64,8 @@ namespace ResponsiveControllerPlugin
 
             return convertedVector;
         }
+
+
     }
 
     public class QuaternionMethods
