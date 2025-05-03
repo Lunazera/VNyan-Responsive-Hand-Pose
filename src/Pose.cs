@@ -6,65 +6,66 @@ using VNyanInterface;
 
 namespace ResponsiveControllerPlugin
 {
-    class Pose
+    class LZPose
     {
         //Name of the pose. 
         private String name;
 
         //A dictionary of bone rotations that apply to this pose
-        private Dictionary<int, BoneRotation> fingerInputs = new Dictionary<int, BoneRotation>();
+        private Dictionary<int, BoneRotation> defaultPose = new Dictionary<int, BoneRotation>();
 
         private Dictionary<string, Pose> inputPoses = new Dictionary<string, Pose> { };
-
-        private List<string> fingerInputConditions = new List<string> { };
-
-        private Dictionary<string, float> fingerInputStates = new Dictionary<string, float> { };
         
-        /**
-         * Creates a new pose with no bones.
-         */
-        public Pose(String name)
+        /// <summary>
+        /// Creates a new pose with no bones.
+        /// </summary>
+        /// <param name="name">Pose name</param>
+        public LZPose(String name)
         {
             this.name = name;
         }
 
-        /**
-         * Creates a new pose with a list of bones, but no finger inputs.
-         */
-        public Pose(String name, ICollection<int> bones)
+        /// <summary>
+        /// Creates a new pose with a list of bones, but no finger inputs.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="bones"></param>
+        public LZPose(String name, ICollection<int> bones)
         {
             this.name = name;
             foreach (var ele in bones)
             {
-                this.fingerInputs.Add(ele, new BoneRotation(ele));
+                this.defaultPose.Add(ele, new BoneRotation(ele));
             }
         }
 
-        /**
-         * Creates a new pose with a given set of finger inputs.
-         */
-        public Pose(String name, ICollection<BoneRotation> fingerInputs)
+        /// <summary>
+        /// Creates a new pose with a given set of finger inputs
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="defaultPose"></param>
+        public LZPose(String name, ICollection<BoneRotation> defaultPose)
         {
             this.name = name;
-            foreach (var ele in fingerInputs)
+            foreach (var ele in defaultPose)
             {
-                this.fingerInputs.Add(ele.getBoneIndex(), ele);
+                this.defaultPose.Add(ele.getBoneIndex(), ele);
             }
         }
 
         /**
          * Creates a new pose with a given dictionary of finger inputs.
          */
-        public Pose(String name, Dictionary<int, BoneRotation> fingerInputs)
+        public LZPose(String name, Dictionary<int, BoneRotation> defaultPose)
         {
             this.name = name;
-            this.fingerInputs = fingerInputs;
+            this.defaultPose = defaultPose;
         }
 
         /**
          * Creates a new pose with a list of bones, but no finger inputs, and a set of input poses.
          */
-        public Pose(String name, ICollection<int> bones, Dictionary<string, Pose> inputPoses) : this(name, bones)
+        public LZPose(String name, ICollection<int> bones, Dictionary<string, Pose> inputPoses) : this(name, bones)
         {
             this.inputPoses = inputPoses;
         }
@@ -72,7 +73,7 @@ namespace ResponsiveControllerPlugin
         /**
          * Creates a new pose with a given set of finger inputs, and a set of input poses.
          */
-        public Pose(String name, ICollection<BoneRotation> fingerInputs, Dictionary<string, Pose> inputPoses): this(name, fingerInputs)
+        public LZPose(String name, ICollection<BoneRotation> defaultPose, Dictionary<string, Pose> inputPoses): this(name, defaultPose)
         {
             this.inputPoses = inputPoses;
         }
@@ -80,7 +81,7 @@ namespace ResponsiveControllerPlugin
         /**
          * Creates a new pose with a given dictionary of finger inputs, and a set of input poses.
          */
-        public Pose(String name, Dictionary<int, BoneRotation> fingerInputs, Dictionary<string, Pose> inputPoses) : this(name, fingerInputs)
+        public LZPose(String name, Dictionary<int, BoneRotation> defaultPose, Dictionary<string, Pose> inputPoses) : this(name, defaultPose)
         {
             this.inputPoses = inputPoses;
         }
@@ -92,19 +93,9 @@ namespace ResponsiveControllerPlugin
             return name;
         }
 
-        public Dictionary<int, BoneRotation> getFingerInputs()
+        public Dictionary<int, BoneRotation> getdefaultPose()
         {
-            return fingerInputs;
-        }
-
-        public List<string> getFingerInputConditions()
-        {
-            return fingerInputConditions;
-        }
-
-        public Dictionary<string, float> getFingerInputStates()
-        {
-            return fingerInputStates;
+            return defaultPose;
         }
 
         public Dictionary<string, Pose> getInputPoses()
