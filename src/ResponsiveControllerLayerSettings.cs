@@ -22,135 +22,27 @@ namespace ResponsiveControllerPlugin
 
         private float slerpAmount = 1f;
 
-        private Pose defaultPose = PoseUtils.createNewDefaultHandsPose();
+        private LZPose defaultPose = PoseUtils.createNewDefaultHandsPose();
 
         // Input Setting Dictionaries // 
 
-        // There are two sets of dictionaries here
-
-        // This first set is to store user input of the bone rotations in x/y/z
-        // These are stored as Vector objects (have x/y/z properties)
-
-        // We will maintain "Poses", and each pose will have a number of "Inputs" configured
-        // We keep the Input settings in a separate dictionary
-
-        // For example consider holding a controller
-        // We need to store the "at rest" pose, and the pose for each button input.
-
-        // Right now this is all set up for working with only one pose, but I want to reconfigure this to handle multiple poses and inputs for each
-
-        // We also have a third dictionary for Input states, mainly it is written and read from to track which button inputs are being pressed (and so which pose inputs to activate)
-
-        // ***
-        // *** This whole part is mainly what i need help with. probably makes sense to make into its own class to maintain all the info.
-        // *** since we have properties we want associated with each thing that are linked together
-        // *** like, we want to create many poses. Each pose has a dictionary of its base finger rotations, AND a dictionary of inputs. Each input has its own small dictionary of finger rotations.
-        // *** within each pose, we also want to maintain which input is current on or off. Input names will be vnyan parameters that you should be able to name anything.
-        // so end result is, i should be able to say "turn on controller pose, and now listen for the input names within this pose, and turn on/off the input rotations depending on that" 
-
-
-        // Dictionary of poses
-        /*
-        private Dictionary<string, Dictionary<int, VNyanVector3>> fingerPoses = PoseDictionary.createPoseDictionary();
-
-        public void setFingerPoses(Dictionary<string, Dictionary<int, VNyanVector3>> val)
-        {
-            fingerPoses = val;
-        }
-
-        public Dictionary<string, Dictionary<int, VNyanVector3>> getFingerPoses()
-        {
-            return fingerPoses;
-        }
-
-        // Future Expansion:
-        // Set up dictionaries so we can have a separate layer for different controller poses
-        // Maybe better to even set up an object for each pose?
-        // Input conditions should then exist within each pose object
-
-        //public static Dictionary<string, Dictionary<string, Dictionary<int, VNyanVector3>>> fingerPoseInputs = new Dictionary<string, Dictionary<string, Dictionary<int, VNyanVector3>>> {
-        //    { "default", new Dictionary<string, Dictionary<int, VNyanVector3>>
-        //       {
-        //        }
-        //    }
-        //};
-
-        // Dictionary of inputs that will modify the target eulers after the default
-        private Dictionary<string, Dictionary<int, VNyanVector3>> fingerInputs = new Dictionary<string, Dictionary<int, VNyanVector3>> { };
-
-        public void setFingerInputs(Dictionary<string, Dictionary<int, VNyanVector3>> val)
-        {
-            fingerInputs = val;
-        }
-
-        public Dictionary<string, Dictionary<int, VNyanVector3>> getFingerInputs()
-        {
-            return fingerInputs;
-        }
-
-        // Dictionary of input settings states, this will track whether a button is pressed or not
-        private Dictionary<string, float> fingerInputStates = new Dictionary<string, float> { };
-
-        public void setFingerInputStates(Dictionary<string, float> val)
-        {
-            fingerInputStates = val;
-        }
-
-        public Dictionary<string, float> getFingerInputStates()
-        {
-            return fingerInputStates;
-        }
-
-        // This just also keeps a list of the names of the inputs to check. this is messy and unneeded probably
-        private List<string> fingerInputConditions = new List<string> { };
-
-        public void setFingerInputConditions(List<string> val)
-        {
-            fingerInputConditions = val;
-        }
-
-        public List<string> getFingerInputConditions()
-        {
-            return fingerInputConditions;
-        }
-        */
-
-        // will be checked for simulated inputs
-        // this isn't really being used rn i was just trying to find a way to let the program show the input without having to actually presss the button
-        private Dictionary<string, float> fingerInputSimulate = new Dictionary<string, float> { };
-
-        // Bone Rotation Dictionaries //
-        // This is the second set of dictionaries
-        // This is mainly a 3-dictionary setup, connecting Euler vectors to a target rotation, and then constantly rotating currently-tracked rotations towards the target
-
-        // This layer of dictionaries should be agnostic to the pose and input settings above. 
-
-        // Basically, we do *whatever* stuff to determine what we want the fingers to look like,
-        // and then we write the result to fingerEulersTarget
-        // The program will constantly compare between fingerEulersTarget, fingerRotationsTarget and fingerRotationsCurrent and adjust the rotations accordingly.
-
-        // Logic:
-        // 1. fingerEulersTarget is updated depending on pose and input settings above
-        // 2. Each bone in fingerEulersTarget is written into fingerRotationsTarget, converting to quaternionss
-        // 3. fingerRotationsCurrent bones are rotated towards each corresponding target in fingerRotationsTarget
-        // 4. fingerRotationsCurrent are pushed to show on your model.
-
-        // Overall idea is that the current bone rotation that we will display every frame. Whenever the targets are changed, the current rotations will rotate towards the target.
-
-        //  Bone vector targets
+        ///
+        /// bone rotation targets as Vector3's to read into the current bone rotations
+        ///
         private Dictionary<int, VNyanVector3> fingerEulersTarget = PoseUtils.createVectorDictionary();
 
-        // Bone Targets
-        // this is a dictionary of the target rotations that will be maintained constantly
+        /**
+         * bone rotation targets as Quaternions's to read into the current bone rotations
+         */
         private Dictionary<int, VNyanQuaternion> fingerRotationsTarget = PoseUtils.createQuaternionDictionary();
 
-
-        // Bone Current
+        /**
+        * Current bone rotations of the avatar model to read into pose layer
+        */
         private Dictionary<int, VNyanQuaternion> fingerRotationsCurrent = PoseUtils.createQuaternionDictionary();
 
-        // Input Settings Methods //
-        // Here are the many methods i've set up to do various things, many being getters and setters
 
+        // Input Settings Methods //
         /**
          * Sets whether to print debug messages to the log
          */
@@ -168,7 +60,7 @@ namespace ResponsiveControllerPlugin
         }
 
         /**
-         * TODO Add description
+         * Gets the Slerp value, which is used by Quaternion.Slerp() to rotate the Current quaternions towards the Targets
          */
         public float getSlerpAmount()
         {
@@ -176,7 +68,7 @@ namespace ResponsiveControllerPlugin
         }
 
         /**
-         * TODO Add description
+         * Sets the Slerp value, which is used by Quaternion.Slerp() to rotate the Current quaternions towards the Targets
          */
         public void setSlerpAmount(float val)
         {
@@ -184,7 +76,7 @@ namespace ResponsiveControllerPlugin
         }
 
         /**
-         * TODO Add description
+         * Gets the Current rotations dictionary
          */
         public Dictionary<int, VNyanQuaternion> getfingerRotationsCurrent()
         {
@@ -192,12 +84,12 @@ namespace ResponsiveControllerPlugin
         }
 
         /**
-         * TODO Add description
+         * Sets the Pose Layer on or off (handled by ResponsiveControllerLayer.isActive() in ResponsiveControlLayer.cs)
          */
         public void setLayerOnOff(float val) => layerActive = (val == 1f) ? true : false;
 
         /**
-         * TODO Add description
+         * Gets pose layer state?
          */
         public bool isLayerActive() => layerActive;
 
@@ -262,7 +154,7 @@ namespace ResponsiveControllerPlugin
             if ( !defaultPose.getInputPoses().ContainsKey(conditionName) )
             {
                 if(debug) Debug.Log("LZ_Controller: Input '" + conditionName + "' Not found, creating entry...");
-                defaultPose.getInputPoses().Add(conditionName, new Pose { });
+                defaultPose.getInputPoses().Add(conditionName, new LZPose { });
                 defaultPose.getFingerInputStates().Add(conditionName, 0f);
                 defaultPose.getFingerInputConditions().Add(conditionName);
                 VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat(prefix + conditionName, 0f);
