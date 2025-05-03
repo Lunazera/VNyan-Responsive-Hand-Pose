@@ -119,6 +119,22 @@ namespace ResponsiveControllerPlugin
 
         //Methods
 
+        /* TODO
+         * - We want to filter "sub poses" dictionary with the active poses 
+         *      - ie: subposes has a, b, c. We activate a and c. so the filter should be a container with only a and c
+         * - We want to handle what happens when multiple subposes are active
+         *      - subposes = Dictionary<string, LZPose>, where each LZPose has Dictionary<int, BoneRotation>. Each BoneRotation has an int and Vector3/Quaternion.
+         *      - We want to collapse or aggregate the subposes dictionary
+         *          - The end result should be a Dictionary<int, BoneRotation>, where each entry is some combination of the different BoneRotations set for each bone int.
+         *          - ie: Say subpose a and c both have a BoneRotation setting for bone 24. We want to take both of those and come up with a single setting for bone 24 to store
+         *      - If the BoneRotations are Vector3, the combination will be an average between all the vectors, which is just (x1+x2)/2, (y1+y2)/2, (z1+z2)/2
+         *      - If the BoneRotations are Quaternion, just take the last entry for now (averaging will be harder)
+         * - We want a method to return the end result of the dictionary of BoneRotations, which will be mainPose combined with the aggregated subPoses
+         *      - Here we will overwrite the bones in mainPose with the bone's set in subPoses if they are present.
+         */
+
+
+
         /// <summary>
         /// Filters the subPoses based on an a list of active input states.
         /// </summary>
