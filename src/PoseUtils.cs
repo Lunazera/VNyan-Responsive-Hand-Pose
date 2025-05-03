@@ -36,30 +36,23 @@ namespace ResponsiveControllerPlugin
 
         // We also have a third dictionary for Input states, mainly it is written and read from to track which button inputs are being pressed (and so which pose inputs to activate)
 
-        // ***
-        // *** This whole part is mainly what i need help with. probably makes sense to make into its own class to maintain all the info.
-        // *** since we have properties we want associated with each thing that are linked together
-        // *** like, we want to create many poses. Each pose has a dictionary of its base finger rotations, AND a dictionary of inputs. Each input has its own small dictionary of finger rotations.
-        // *** within each pose, we also want to maintain which input is current on or off. Input names will be vnyan parameters that you should be able to name anything.
-        // so end result is, i should be able to say "turn on controller pose, and now listen for the input names within this pose, and turn on/off the input rotations depending on that"
-
-        public static Dictionary<string, Pose> createPoseDictionary()
+        public static Dictionary<string, LZPose> createPoseDictionary()
         {
-            Dictionary<string, Pose> fingerPoses = new Dictionary<string, Pose> { };
-            Pose defaultPose = PoseUtils.createNewHandsPose(defaultPoseName);
+            Dictionary<string, LZPose> fingerPoses = new Dictionary<string, LZPose> { };
+            LZPose defaultPose = PoseUtils.createNewHandsPose(defaultPoseName);
             fingerPoses.Add(defaultPoseName, defaultPose);
             return fingerPoses;
         }
 
-        public static Pose createNewDefaultHandsPose()
+        public static LZPose createNewDefaultHandsPose()
         {
             return PoseUtils.createNewHandsPose(defaultPoseName);
 
         }
 
-        public static Pose createNewHandsPose(string name)
+        public static LZPose createNewHandsPose(string name)
         {
-            return new Pose(name, ListFingers);
+            return new LZPose(name, ListFingers);
         }
 
         public static Dictionary<int, VNyanVector3> createVectorDictionary()
