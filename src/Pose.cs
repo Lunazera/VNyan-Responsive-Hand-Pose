@@ -145,10 +145,18 @@ namespace ResponsiveControllerPlugin
             return subPoses.Where(x => inputStates.Contains(x.Key)).ToDictionary(x => x.Key, x => x.Value);
         }
 
-
-        public BoneRotation averageBoneRotations(List<BoneRotation> boneRotationList)
+        /// <summary>
+        /// Calculate the average of a list of BoneRotations and applies the new rotation to each bone.
+        /// </summary>
+        /// <param name="boneRotationList"></param>
+        public void averageBoneRotations(List<BoneRotation> boneRotationList)
         {
-            return null;
+            float sumX = boneRotationList.Sum(rot => rot.getRotation().X);
+            float sumY = boneRotationList.Sum(rot => rot.getRotation().Y);
+            float sumZ = boneRotationList.Sum(rot => rot.getRotation().Z);
+            float sumW = boneRotationList.Sum(rot => rot.getRotation().W);
+
+            boneRotationList.ForEach(rot => rot.setRotation(new VNyanQuaternion { X = sumX, Y = sumY, Z = sumZ, W = sumW }));
         }
 
         /// <summary>
@@ -160,6 +168,8 @@ namespace ResponsiveControllerPlugin
         /// <returns></returns>
         public Dictionary<string, LZPose> mixSubPoses()
         {
+            Dictionary<string, LZPose> output = new Dictionary<string, LZPose> { };
+
             /* Attempt 1:
             foreach (int boneNum in getBoneNumbers())
             {
@@ -184,8 +194,6 @@ namespace ResponsiveControllerPlugin
                 // 
 
             }
-            
-
             
             return output;
         }
