@@ -156,7 +156,9 @@ namespace ResponsiveControllerPlugin
             float sumZ = boneRotationList.Sum(rot => rot.getRotation().Z);
             float sumW = boneRotationList.Sum(rot => rot.getRotation().W);
 
-            boneRotationList.ForEach(rot => rot.setRotation(new VNyanQuaternion { X = sumX, Y = sumY, Z = sumZ, W = sumW }));
+            VNyanQuaternion meanRot = new VNyanQuaternion { X = sumX, Y = sumY, Z = sumZ, W = sumW };
+
+            boneRotationList.ForEach(rot => rot.setRotation(meanRot));
         }
 
         /// <summary>

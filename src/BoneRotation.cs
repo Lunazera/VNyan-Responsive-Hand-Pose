@@ -8,7 +8,7 @@ namespace ResponsiveControllerPlugin
     class BoneRotation
     {
         //The index of the bone
-        private int boneIndex
+        private int boneIndex;
 
         //The rotation applied to the bone
         private VNyanQuaternion rotation;
@@ -28,7 +28,7 @@ namespace ResponsiveControllerPlugin
         public BoneRotation(int boneIndex, VNyanVector3 rot)
         {
             this.boneIndex = boneIndex;
-            this.rotation = new VNyanQuaternion { X = rot.X, Y = rot.Y, Z = rot.Z, W = 0 };
+            setRotation(rot);
         }
 
         /**
@@ -37,7 +37,7 @@ namespace ResponsiveControllerPlugin
         public BoneRotation(int boneIndex, VNyanQuaternion rot)
         {
             this.boneIndex = boneIndex;
-            this.rotation = rot;
+            setRotation(rot);
         }
 
         // Methods
@@ -70,14 +70,22 @@ namespace ResponsiveControllerPlugin
             return this.rotation;
         }
 
+        /// <summary>
+        /// Sets the rotation as a new instance of the input rotation with the same X,Y,Z, and W = 0.
+        /// </summary>
+        /// <param name="rot"></param>
         public void setRotation(VNyanVector3 rot)
         {
             this.rotation = new VNyanQuaternion { X = rot.X, Y = rot.Y, Z = rot.Z, W = 0 };
         }
 
+        /// <summary>
+        /// Sets the rotation as a new instance of the input rotation with the same X,Y,Z,W.
+        /// </summary>
+        /// <param name="rot"></param>
         public void setRotation(VNyanQuaternion rot)
         {
-            this.rotation = rot;
+            this.rotation = new VNyanQuaternion { X = rot.X, Y = rot.Y, Z = rot.Z, W = rot.W };
         }
 
     }
