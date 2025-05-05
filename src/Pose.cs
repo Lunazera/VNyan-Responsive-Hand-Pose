@@ -149,16 +149,22 @@ namespace ResponsiveControllerPlugin
         /// Calculate the average of a list of BoneRotations and applies the new rotation to each bone.
         /// </summary>
         /// <param name="boneRotationList"></param>
-        public void averageBoneRotations(List<BoneRotation> boneRotationList)
+        public List<BoneRotation> averageBoneRotations(List<BoneRotation> boneRotationList)
         {
-            float sumX = boneRotationList.Sum(rot => rot.getRotation().X);
-            float sumY = boneRotationList.Sum(rot => rot.getRotation().Y);
-            float sumZ = boneRotationList.Sum(rot => rot.getRotation().Z);
-            float sumW = boneRotationList.Sum(rot => rot.getRotation().W);
+            int numBones = boneRotationList.Count();
 
-            VNyanQuaternion meanRot = new VNyanQuaternion { X = sumX, Y = sumY, Z = sumZ, W = sumW };
+            float meanX = boneRotationList.Sum(rot => rot.getRotation().X)/ numBones;
+            float meanY = boneRotationList.Sum(rot => rot.getRotation().Y)/ numBones;
+            float meanZ = boneRotationList.Sum(rot => rot.getRotation().Z)/ numBones;
+            float meanW = boneRotationList.Sum(rot => rot.getRotation().W)/ numBones;
 
-            boneRotationList.ForEach(rot => rot.setRotation(meanRot));
+            VNyanQuaternion meanRot = new VNyanQuaternion { X = meanX, Y = meanY, Z = meanZ, W = meanW };
+
+            List<BoneRotation> meanBones = new List<BoneRotation> { };
+
+            boneRotationList.ForEach(rot => meanBones.Add(new BoneRotation(rot.getBoneIndex(), meanRot)));
+
+            return meanBones;
         }
 
         /// <summary>
