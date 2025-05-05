@@ -8,28 +8,10 @@ namespace ResponsiveControllerPlugin
     class BoneRotation
     {
         //The index of the bone
-        private int boneIndex;
+        private int boneIndex
 
-        public int getBoneIndex()
-        {
-            return boneIndex;
-        }
-
-        //The 3D (Euler) rotation applied to the bone
-        private VNyanVector3 eulerRotation;
-
-        public VNyanVector3 getEulerRotation()
-        {
-            return eulerRotation;
-        }
-
-        //The 4D rotation applied to the bone
+        //The rotation applied to the bone
         private VNyanQuaternion rotation;
-
-        public VNyanQuaternion getRotation()
-        {
-            return rotation;
-        }
 
         /**
          * Creates a new instance with no defined rotations.
@@ -37,41 +19,66 @@ namespace ResponsiveControllerPlugin
         public BoneRotation(int boneIndex)
         {
             this.boneIndex = boneIndex;
-            this.eulerRotation = new VNyanVector3 { };
             this.rotation = new VNyanQuaternion { };
         }
 
         /**
-         * Creates a new pose with a given set of 3D (Euler) rotations.
+         * Creates a new pose with a given 3D rotation.
          */
-        public BoneRotation(int boneIndex, VNyanVector3 eulerRotation)
+        public BoneRotation(int boneIndex, VNyanVector3 rot)
         {
             this.boneIndex = boneIndex;
-            this.eulerRotation = eulerRotation;
-            this.rotation = new VNyanQuaternion { };
+            this.rotation = new VNyanQuaternion { X = rot.X, Y = rot.Y, Z = rot.Z, W = 0 };
         }
 
         /**
-         * Creates a new pose with a given set of 4D rotations.
+         * Creates a new pose with a given 4D rotation.
          */
-        public BoneRotation(int boneIndex, VNyanQuaternion rotation)
+        public BoneRotation(int boneIndex, VNyanQuaternion rot)
         {
             this.boneIndex = boneIndex;
-            this.eulerRotation = new VNyanVector3 { };
-            this.rotation = rotation;
-        }
-
-        /**
-         * Creates a new pose with a given set of 3D and 4D rotations.
-         */
-        public BoneRotation(int boneIndex, VNyanVector3 eulerRotation, VNyanQuaternion rotation)
-        {
-            this.boneIndex = boneIndex;
-            this.eulerRotation = eulerRotation;
-            this.rotation = rotation;
+            this.rotation = rot;
         }
 
         // Methods
-        
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns>boneIndex</returns>
+        public int getBoneIndex()
+        {
+            return this.boneIndex;
+        }
+
+        /// <summary>
+        /// Returns the rotation as a Vector3 by chopping off the W component.
+        /// </summary>
+        /// <returns>Rotation as a VNyanVector3</returns>
+        public VNyanVector3 getEulerRotation()
+        {
+            return new VNyanVector3 { X = this.rotation.X, Y = this.rotation.Y, Z = this.rotation.Z};
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns>rotation</returns>
+        public VNyanQuaternion getRotation()
+        {
+            return this.rotation;
+        }
+
+        public void setRotation(VNyanVector3 rot)
+        {
+            this.rotation = new VNyanQuaternion { X = rot.X, Y = rot.Y, Z = rot.Z, W = 0 };
+        }
+
+        public void setRotation(VNyanQuaternion rot)
+        {
+            this.rotation = rot;
+        }
+
     }
 }
