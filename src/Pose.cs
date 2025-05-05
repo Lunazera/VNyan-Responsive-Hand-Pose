@@ -149,6 +149,7 @@ namespace ResponsiveControllerPlugin
         /// Calculate the average of a list of BoneRotations and applies the new rotation to each bone.
         /// </summary>
         /// <param name="boneRotationList"></param>
+        /// /// <returns>A new list with all the bones from the input list, and the rotation set to the average vector</returns>
         public List<BoneRotation> averageBoneRotations(List<BoneRotation> boneRotationList)
         {
             int numBones = boneRotationList.Count();
