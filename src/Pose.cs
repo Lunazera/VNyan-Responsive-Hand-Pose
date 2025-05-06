@@ -206,5 +206,17 @@ namespace ResponsiveControllerPlugin
             
             return output;
         }
+
+       /// <summary>
+       /// This should return the final result of the Pose, taking the default/main pose + the mixed-together subposes
+       /// - subpose bones will mix together by taking average when the same bones are set
+       /// - Default bones will be replaced by mixed subpose bones when they are set, otherwise pass through the default bones
+       /// - This needs to be a dictionary of VnyanVectory3, not BoneRotation, because it is going to be used by our vector/quaternion methods
+       /// </summary>
+       /// <returns></returns>
+        public Dictionary<int, VNyanVector3> getPoseOutput()
+        {
+            return output;
+        }
     }
 }
