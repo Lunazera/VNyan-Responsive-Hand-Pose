@@ -117,9 +117,20 @@ namespace ResponsiveControllerPlugin
             this.name = name;
         }
 
+        /**
+         * TODO:
+         * - Setters to change Bone Rotations within either the mainPose or SubPoses
+         *      - Once an LZPose is created, we will want to actually modify the pose in real time
+         *      - Once Subposes are created, we will want to modify those poses too.
+         * - Maybe rather than constantly changing the LZPose object itself...
+         *      - we can create a copy of the object that is used to do the rotations and things, maybe that's basically just the "output" from getPoseOutput().
+         *      - when changing settings of the pose using the UI, we just change that "output".
+         *      - Then, when we're done we "save" it, which then takes the output dictionary and saves it under the subpose if any inputs are active, and if not saves it under the default/main pose
+         */
+
         //Methods
 
-        /* TODO
+        /** TODO
          * - We want to filter "sub poses" dictionary with the active poses 
          *      - ie: subposes has a, b, c. We activate a and c. so the filter should be a container with only a and c
          * - We want to handle what happens when multiple subposes are active
