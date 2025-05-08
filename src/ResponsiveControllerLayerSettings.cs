@@ -2,11 +2,12 @@
 using VNyanInterface;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
+using System.Linq;
 
 namespace ResponsiveControllerPlugin
 {
     // This is split into two sections, this settings section to call/store all the data, and the Interface implementation below
-    public class ResponsiveControllerLayerSettings
+    class ResponsiveControllerLayerSettings
     {
         //Prefix for parameters set in VNyan, so they can be easily identified in the Monitor tool
         public static string prefix = "LZ_ControllerPoseInput_";
@@ -63,6 +64,9 @@ namespace ResponsiveControllerPlugin
         {
             slerpAmount = val;
         }
+
+
+        
 
 
         // Rotations Euler Dictionary //
@@ -128,6 +132,11 @@ namespace ResponsiveControllerPlugin
             }
         }
 
+        public bool checkIfTargetBoneExists(int boneNum)
+        {
+            return RotationsTarget.ContainsKey(boneNum);
+        }
+       
 
         // Rotations Current Dictionary //
         //
@@ -179,21 +188,114 @@ namespace ResponsiveControllerPlugin
             }
         }
 
+        public bool checkIfCurrentBoneExists(int boneNum)
+        {
+            return RotationsCurrent.ContainsKey(boneNum);
+        }
 
-        // User Input Methods //
-        // These are to just get the input states from vnyan parameters
 
-        /**
-         * Grab input state from within VNyan
-         */
-        //public void getInputStatesFromVNyan()
-        //{
-        //    // Get current input states from VNyan
-        //    foreach (string condition in fingerInputConditions)
-        //    {
-        //        setfingerInputState(condition, VNyanInterface.VNyanInterface.VNyanParameter.getVNyanParameterFloat(condition));
-        //    }
-        //}
+        // Inputs Dictionary //
+        //
+        // We will keep a dictionary of all the inputs we need to listen to when an LZ pose is active
+        // We are constantly grabbing these from within vnyan parameters, so if we don't need to we don't want to do extra work
+
+        private Dictionary<string, int> InputStates = new Dictionary<string, int>();
+
+
+        /// <summary>
+        /// Sets the InputStates dictionary from a new incoming one, usually from LZPose
+        /// </summary>
+        /// <param name="InputsDict"></param>
+        public void setInputs(Dictionary<string, int> InputsDict)
+        {
+            InputStates = InputsDict;
+        }
+
+        /// <summary>
+        /// Checks if Input State exists in current dictionary
+        /// </summary>
+        /// <param name="input">name of input or subpose</param>
+        /// <returns>True or False if input name exists in dictionary</returns>
+        public bool checkInputState(string input)
+        {
+            return InputStates.ContainsKey(input);
+        }
+
+        /// <summary>
+        /// Sets the state of the input
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="state"></param>
+        public void setInputState(string input, int state)
+        {
+            InputStates[input] = state;
+        }
+
+        /// <summary>
+        /// Sets the state of the input, casting a float into int
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="state"></param>
+        public void setInputStateFloat(string input, float state)
+        {
+            InputStates[input] = (int)state;
+        }
+
+        /// <summary>
+        /// Gets input state value
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public int getInputState(string input)
+        {
+            return InputStates[input];
+        }
+
+        /// <summary>
+        /// Gets the input state and converts it to float
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public float getInputStateFloat(string input)
+        {
+            return (float)getInputState(input);
+        }
+
+        /// <summary>
+        /// Gets on/off bool state of input
+        /// </summary>
+        /// <param name="input">string input name</param>
+        /// <returns>True or False if the value in on or not</returns>
+        public bool getInputStateBool(string input) => (getInputState(input) >= 1) ? true : false;
+
+        /// <summary>
+        /// Gets chosen button inputs from VNyan, based on the list current active for the pose.
+        /// </summary>
+        public void updateInputStatesFromVNyan()
+        {
+            foreach (KeyValuePair<string, int> input in InputStates)
+            {
+                setInputStateFloat(input.Key, VNyanInterface.VNyanInterface.VNyanParameter.getVNyanParameterFloat(input.Key));
+            }
+        }
+
+        /// <summary>
+        /// Sets the InputStates Dictionary from an incoming list converting into dictionary of states
+        /// </summary>
+        /// <param name="InputsList"></param>
+        public void setInputsFromList(List<string> InputsList)
+        {
+            setInputs(InputsList.ToDictionary(x => x, x => 0));
+        }
+
+        /// <summary>
+        /// Sets the InputStates Dictionary from the current pose, converting the list to a dictonary of states
+        /// </summary>
+        /// <param name="pose"></param>
+        public void setInputsFromPose(LZPose pose)
+        {
+            setInputsFromList(pose.getInputs());
+        }
 
 
         // Current/Target Rotation Methods //
@@ -202,11 +304,7 @@ namespace ResponsiveControllerPlugin
         /**
          * TODO Add description
          */
-        public bool checkIfFingerCurrentExists(int boneNum)
-        {
-            // Checks if the bone exists in the current dictionary
-            return fingerRotationsCurrent.ContainsKey(boneNum);
-        }
+
 
         /**
          * Initialize target rotation dictionary from LZPose
@@ -347,27 +445,27 @@ namespace ResponsiveControllerPlugin
         /**
          * Gets Target Rotation according to one axis
          */
-        public float getFingerEulerAxis(int boneNum, int axis, string pose = "default")
-        {
-            // Get finger rotation along axis if it exists
-            if ( fingerEulersTarget.ContainsKey(boneNum) )
-            {
-                switch(axis)
-                {
-                    case 0:
-                        return fingerEulersTarget[boneNum].X;
-                    case 1:
-                        return fingerEulersTarget[boneNum].Y;
-                    case 2:
-                        return fingerEulersTarget[boneNum].Z;
-                    default:
-                        return 0f;
-                }
-            }
-            else
-            {
-                return 0f;
-            }
-        } 
+        //public float getFingerEulerAxis(int boneNum, int axis, string pose = "default")
+        //{
+        //    // Get finger rotation along axis if it exists
+        //    if ( fingerEulersTarget.ContainsKey(boneNum) )
+        //    {
+        //        switch(axis)
+        //        {
+        //            case 0:
+        //                return fingerEulersTarget[boneNum].X;
+        //            case 1:
+        //                return fingerEulersTarget[boneNum].Y;
+        //            case 2:
+        //                return fingerEulersTarget[boneNum].Z;
+        //            default:
+        //                return 0f;
+        //        }
+        //    }
+        //    else
+        //    {
+        //        return 0f;
+        //    }
+        //} 
     }
 }
