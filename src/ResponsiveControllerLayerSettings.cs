@@ -21,23 +21,15 @@ namespace ResponsiveControllerPlugin
 
         private LZPose defaultPose = PoseUtils.createNewDefaultHandsPose();
 
-        // Input Setting Dictionaries // 
-
         /**
-         * bone rotation targets as Vector3's to read into the current bone rotations
+         * Sets the Pose Layer on or off (handled by ResponsiveControllerLayer.isActive() in ResponsiveControlLayer.cs)
          */
-        private Dictionary<int, VNyanVector3> fingerEulersTarget = PoseUtils.createVectorDictionary();
+        public void setLayerOnOff(float val) => layerActive = (val == 1f) ? true : false;
 
         /**
-         * bone rotation targets as Quaternions's to read into the current bone rotations
+         * Gets pose layer state?
          */
-        private Dictionary<int, VNyanQuaternion> fingerRotationsTarget = PoseUtils.createQuaternionDictionary();
-
-        /**
-        * Current bone rotations of the avatar model to read into pose layer
-        */
-        private Dictionary<int, VNyanQuaternion> fingerRotationsCurrent = PoseUtils.createQuaternionDictionary();
-
+        public bool isLayerActive() => layerActive;
 
         // Input Settings Methods //
         /**
@@ -72,24 +64,120 @@ namespace ResponsiveControllerPlugin
             slerpAmount = val;
         }
 
-        /**
-         * Gets the Current rotations dictionary
-         */
-        public Dictionary<int, VNyanQuaternion> getfingerRotationsCurrent()
+
+        // Rotations Euler Dictionary //
+        //
+        // bone rotation targets as Vector3's to read into the current bone rotations
+
+        private Dictionary<int, VNyanVector3> RotationsEuler = PoseUtils.createVectorDictionary();
+
+        /// <summary>
+        /// Gets bone vector in the Target Rotations Vector3 dictionary
+        /// </summary>
+        /// <param name="boneNum"> Bone Number</param>
+        /// <param name="vector"></param>
+        public VNyanVector3 getRotationsEulersBone(int boneNum)
         {
-            return fingerRotationsCurrent;
+            return RotationsEuler[boneNum];
         }
 
-        /**
-         * Sets the Pose Layer on or off (handled by ResponsiveControllerLayer.isActive() in ResponsiveControlLayer.cs)
-         */
-        public void setLayerOnOff(float val) => layerActive = (val == 1f) ? true : false;
+        /// <summary>
+        /// Sets a bone vector in the Target Rotations Vector3 dictionary
+        /// </summary>
+        /// <param name="boneNum"></param>
+        /// <param name="vector"></param>
+        public void setRotationsEulersBone(int boneNum, VNyanVector3 vector)
+        {
+            RotationsEuler[boneNum] = vector;
+        }
 
-        /**
-         * Gets pose layer state?
-         */
-        public bool isLayerActive() => layerActive;
 
+        // Rotations Target Dictionary //
+        //
+        // bone rotation targets as Quaternions's to read into the current bone rotations
+        private Dictionary<int, VNyanQuaternion> RotationsTarget = PoseUtils.createQuaternionDictionary();
+
+        /// <summary>
+        /// Gets bone quaternion in the Target Rotations
+        /// </summary>
+        /// <param name="boneNum"></param>
+        /// <param name="quaternion"></param>
+        /// <returns></returns>
+        public VNyanQuaternion getRotationsTargetBone(int boneNum)
+        {
+            return RotationsTarget[boneNum];
+        }
+
+        /// <summary>
+        /// Sets bone quaternion in Target Rotations
+        /// </summary>
+        public void setRotationsTargetBone(int boneNum, VNyanQuaternion quaternion)
+        {
+            RotationsTarget[boneNum] = quaternion;
+        }
+
+        /// <summary>
+        /// Updates the RotationsTarget dictionary by converting from the Rotation Eulers
+        /// We get the Euler rotation, convert it to a quaternion, then set that quaternion to Rotations Target
+        /// </summary>
+        public void updateRotationsTarget()
+        {
+            foreach (int boneNum in PoseUtils.getHandsBoneIndices())
+            {
+                setRotationsTargetBone(boneNum, QuaternionMethods.setFromVNyanVector3( getRotationsEulersBone(boneNum) ));
+            }
+        }
+
+
+        // Rotations Current Dictionary //
+        //
+        // Current bone rotations of the avatar model to read into pose layer
+        private Dictionary<int, VNyanQuaternion> RotationsCurrent = PoseUtils.createQuaternionDictionary();
+
+        /// <summary>
+        /// Gets Single Bone from Current Rotations
+        /// </summary>
+        /// <returns></returns>
+        public VNyanQuaternion getRotationsCurrentBone(int boneNum)
+        {
+            return RotationsCurrent[boneNum];
+        }
+
+        /// <summary>
+        /// Sets single Bone in the Current Rotations
+        /// </summary>
+        public void setRotationsCurrentBone(int boneNum, VNyanQuaternion quaternion)
+        {
+            RotationsCurrent[boneNum] = quaternion;
+        }
+
+        /// <summary>
+        /// Updates the RotationsCurrent Dictionary by calling rotateCurrentTowardsTarget()
+        /// </summary>
+        public void updateRotationsCurrent()
+        {
+            rotateCurrentTowardsTarget();
+        }
+
+        /// <summary>
+        /// Rotates every bone's Current rotation towards the Target using SLERP (spherical linear interpolation)
+        /// This only should happen if the current rotation is actually different to the target.
+        /// We convert to unity Quaternions to do the calculation, then convert back to VNyanQuaternions to save it.
+        /// </summary>
+        public void rotateCurrentTowardsTarget()
+        {
+            foreach (int boneNum in PoseUtils.getHandsBoneIndices())
+            {
+                VNyanQuaternion target = getRotationsTargetBone(boneNum);
+                VNyanQuaternion current = getRotationsCurrentBone(boneNum);
+
+                if (!(current == target)) // Only apply if the target is different from the current
+                {
+                    Quaternion newRotation = Quaternion.Slerp(QuaternionMethods.convertQuaternionV2U(current), QuaternionMethods.convertQuaternionV2U(target), slerpAmount * Time.deltaTime);
+                    setRotationsCurrentBone(boneNum, QuaternionMethods.convertQuaternionU2V(newRotation));
+                }
+            }
+        }
 
 
         // User Input Methods //
@@ -134,13 +222,7 @@ namespace ResponsiveControllerPlugin
         //}
 
         // These three "setEulerTarget" methods connect the input settings to the main Euler Targets dictionary that gets read from
-        /**
-         * Sets a bone in the Target Rotations Vector3 dictionary
-         */
-        public void setEulerTarget(int boneNum, VNyanVector3 vector)
-        {
-            fingerEulersTarget[boneNum] = vector;
-        }
+       
 
         /**
          * Loops through bones in LZPose output, sets the Target Rotations Vector3 to this
@@ -152,28 +234,6 @@ namespace ResponsiveControllerPlugin
         //        setEulerTarget(vector.Key, vector.Value);
         //    }
         //}  
-
-        /**
-         * Applies rotation using SLERP (spherical linear interpolation)
-         */
-        public void rotateCurrentTowardsTarget()
-        {
-            // Rotate every bone's current rotation Towards Target
-            foreach (int boneNum in PoseUtils.getHandsBoneIndices())
-            {
-                VNyanQuaternion target = fingerRotationsTarget[boneNum];
-                VNyanQuaternion current = fingerRotationsCurrent[boneNum];
-
-                if (!(current == target))
-                {
-                    Quaternion newRotation = Quaternion.Slerp(QuaternionMethods.convertQuaternionV2U(current), QuaternionMethods.convertQuaternionV2U(target), slerpAmount * Time.deltaTime);
-                    fingerRotationsCurrent[boneNum] = QuaternionMethods.convertQuaternionU2V(newRotation);
-                    // fingerRotationsCurrent[boneNum] = target; 
-                }
-            }
-        }
-
-
 
 
 
@@ -282,18 +342,7 @@ namespace ResponsiveControllerPlugin
         /**
          * Gets Target Rotations Vector3
          */
-        public VNyanVector3 getFingerEuler(int boneNum, string pose = "default")
-        {
-            // Get finger vector if it exists
-            if ( fingerEulersTarget.ContainsKey(boneNum) )
-            {
-                return fingerEulersTarget[boneNum];
-            }
-            else
-            {
-                return new VNyanVector3 { };
-            }
-        }
+        
 
         /**
          * Gets Target Rotation according to one axis
