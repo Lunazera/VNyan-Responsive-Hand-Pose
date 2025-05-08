@@ -105,9 +105,22 @@ namespace ResponsiveControllerPlugin
             return mainPose.Keys.ToArray();
         }
 
+        /// <summary>
+        /// Gets Sub Poses Dictionary
+        /// </summary>
+        /// <returns>Sub Pose Dictionary</returns>
         public Dictionary<string, LZPose> getsubPoses()
         {
             return subPoses;
+        }
+
+        /// <summary>
+        /// Gets a string list of all the sub pose names
+        /// </summary>
+        /// <returns>list of strings containing sub pose names</returns>
+        public List<string> getInputs()
+        {
+            return new List<string>(subPoses.Keys);
         }
 
         //Setters
@@ -144,16 +157,14 @@ namespace ResponsiveControllerPlugin
          *      - Here we will overwrite the bones in mainPose with the bone's set in subPoses if they are present.
          */
 
-
-
         /// <summary>
         /// Filters the subPoses based on an a list of active input states.
         /// </summary>
-        /// <param name="inputStates">List of strings of inputs, set externally</param>
+        /// <param name="ActiveInputs">List of strings of inputs that are "on", set externally</param>
         /// <returns>Filtered subPoses dictionary</returns>
-        public Dictionary<string, LZPose> filterSubPoses(List<string> inputStates)
+        public Dictionary<string, LZPose> filterSubPoses(List<string> ActiveInputs)
         {
-            return subPoses.Where(x => inputStates.Contains(x.Key)).ToDictionary(x => x.Key, x => x.Value);
+            return subPoses.Where(x => ActiveInputs.Contains(x.Key)).ToDictionary(x => x.Key, x => x.Value);
         }
 
         /// <summary>
