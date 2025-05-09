@@ -65,15 +65,33 @@ namespace ResponsiveControllerPlugin
             slerpAmount = val;
         }
 
+        // BoneRotation Dictionary to load in our working one when editing poses
+        private Dictionary<int, BoneRotation> LZPoseWorkingDict;
 
-        
+        // Bone Vectors read from chosen LZPose (default mixed with active inputs)
+        private Dictionary<int, VNyanVector3> RotationsEuler;
+
+        // Bone rotation targets as Quaternions's to read into the current bone rotations
+        private Dictionary<int, VNyanQuaternion> RotationsTarget = PoseUtils.createQuaternionDictionary();
+
+        // Current bone rotations of the avatar model to read into pose layer
+        private Dictionary<int, VNyanQuaternion> RotationsCurrent = PoseUtils.createQuaternionDictionary();
+
+        // Dictionary of input states currently active
+        private Dictionary<string, int> InputStates = new Dictionary<string, int>();
+
+
+        // LZPose Working Dictionary
+        public void loadActivePoseDictionary(Dictionary<int, BoneRotation> incomingDictionary)
+        {
+            // TODO: does this make sense??
+            // I want to hold the int, BoneRotation dictionary temporarily here if it's loaded
+            LZPoseWorkingDict = incomingDictionary;
+        }
 
 
         // Rotations Euler Dictionary //
         //
-        // bone rotation targets as Vector3's to read into the current bone rotations
-
-        private Dictionary<int, VNyanVector3> RotationsEuler = PoseUtils.createVectorDictionary();
 
         /// <summary>
         /// Gets bone vector in the Target Rotations Vector3 dictionary
@@ -98,9 +116,7 @@ namespace ResponsiveControllerPlugin
 
         // Rotations Target Dictionary //
         //
-        // bone rotation targets as Quaternions's to read into the current bone rotations
-        private Dictionary<int, VNyanQuaternion> RotationsTarget = PoseUtils.createQuaternionDictionary();
-
+        
         /// <summary>
         /// Gets bone quaternion in the Target Rotations
         /// </summary>
@@ -140,8 +156,6 @@ namespace ResponsiveControllerPlugin
 
         // Rotations Current Dictionary //
         //
-        // Current bone rotations of the avatar model to read into pose layer
-        private Dictionary<int, VNyanQuaternion> RotationsCurrent = PoseUtils.createQuaternionDictionary();
 
         /// <summary>
         /// Gets Single Bone from Current Rotations
@@ -198,8 +212,6 @@ namespace ResponsiveControllerPlugin
         //
         // We will keep a dictionary of all the inputs we need to listen to when an LZ pose is active
         // We are constantly grabbing these from within vnyan parameters, so if we don't need to we don't want to do extra work
-
-        private Dictionary<string, int> InputStates = new Dictionary<string, int>();
 
 
         /// <summary>
@@ -288,60 +300,78 @@ namespace ResponsiveControllerPlugin
             setInputs(InputsList.ToDictionary(x => x, x => 0));
         }
 
+      
+        // Working with LZPoses //
+
+        // Load in new pose
+
+        /// <summary>
+        /// Loads a new LZPose, using the Working dictionary to reference the main pose  
+        /// </summary>
+        /// <param name="pose"></param>
+        public void loadLZPose(LZPose pose)
+        {
+            // Load the working dictionary from pose
+            loadActivePoseDictionary(pose.getmainPose());
+
+            // Load the Target Euler from pose
+            loadTargetPose(pose, new List<string> { });
+
+            // Load the inputStates dictionary from pose
+            loadInputsFromPose(pose);
+        }
+
+        public void loadLZPose(LZPose pose, string subpose)
+        {
+            // Loads working dictionary from chosen subpose
+            loadActivePoseDictionary(pose.getsubPose(subpose));
+            
+            // Loads target euler from pose. TODO: this should take in list of active subposes
+            loadTargetPose(pose, new List<string> { subpose } );
+        }
+
+        public void loadLZPose(LZPose pose, List<string> subposes)
+        {
+            // Loads target euler from pose. TODO: this should take in list of active subposes
+            loadTargetPose(pose, subposes);
+        }
+
         /// <summary>
         /// Sets the InputStates Dictionary from the current pose, converting the list to a dictonary of states
         /// </summary>
         /// <param name="pose"></param>
-        public void setInputsFromPose(LZPose pose)
+        public void loadInputsFromPose(LZPose pose)
         {
             setInputsFromList(pose.getInputs());
         }
 
+        /// <summary>
+        /// Loads the Target Eulers dicitonary from the pose based on it's output
+        /// </summary>
+        /// <param name="pose"></param>
+        public void loadTargetPose(LZPose pose, List<string> subposes)
+        {
+            // TODO: this should take in list of active subposes, to apply mixing
+            RotationsEuler = pose.getPoseOutput(subposes);
+        }
+
+
+        // Change pose settings
+        // If the references are correct, then when we edit LZPoseWorkingDict it SHOULD edit it within the pose itself
+
+        // TODO: We probably want a way to revert changes??? and not apply them unless we want to save it
+
+        /// <summary>
+        /// Sets bone in active pose
+        /// </summary>
+        /// <param name="boneNum"></param>
+        /// <param name="vector"></param>
+        public void setPoseBone(int boneNum, VNyanVector3 vector)
+        {
+            LZPoseWorkingDict[boneNum].setRotation(vector);
+        }
 
         // Current/Target Rotation Methods //
-        // These methods do the actual rotation of the models bones with those 3 dictionaries
-
-        /**
-         * TODO Add description
-         */
-
-
-        /**
-         * Initialize target rotation dictionary from LZPose
-         */
-        //public void initTargetRotations()
-        //{
-        //    // Sets all target rotations from euler settings
-        //    foreach (int boneNum in PoseUtils.getHandsBoneIndices())
-        //    {
-        //        VNyanVector3 eulers = getFingerEuler(boneNum);
-        //        fingerRotationsTarget[boneNum] = QuaternionMethods.setFromVNyanVector3(eulers);
-        //    }
-        //}
-
-        // These three "setEulerTarget" methods connect the input settings to the main Euler Targets dictionary that gets read from
-       
-
-        /**
-         * Loops through bones in LZPose output, sets the Target Rotations Vector3 to this
-         */
-        //public void setEulerTargetsDefault()
-        //{
-        //    foreach (KeyValuePair<int, VNyanVector3> vector in fingerPoses["default"])
-        //    {
-        //        setEulerTarget(vector.Key, vector.Value);
-        //    }
-        //}  
-
-
-
-
-
-        /**
-         * TODO Add description
-         */
-
-
 
 
         /**
