@@ -118,9 +118,19 @@ namespace ResponsiveControllerPlugin
         /// Gets out a single subpose
         /// </summary>
         /// <returns>single sub pose within LZpose</returns>
-        public LZPose getsubPose(string poseName)
+        public Dictionary<int, BoneRotation> getsubPose(string poseName)
         {
-            return subPoses[poseName];
+            return subPoses[poseName].getmainPose();
+        }
+
+        /// <summary>
+        /// Gets array of bone numbers within the subpose
+        /// </summary>
+        /// <param name="subposeName">string name of the subpose</param>
+        /// <returns>int array of bone numbers</returns>
+        public int[] getsubPoseBoneNumbers(string subposeName)
+        {
+            return getsubPose(subposeName).Keys.ToArray();
         }
 
         /// <summary>
