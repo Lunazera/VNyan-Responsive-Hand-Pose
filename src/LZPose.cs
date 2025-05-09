@@ -115,6 +115,24 @@ namespace ResponsiveControllerPlugin
         }
 
         /// <summary>
+        /// Gets out a single subpose
+        /// </summary>
+        /// <returns>single sub pose within LZpose</returns>
+        public LZPose getsubPose(string poseName)
+        {
+            return subPoses[poseName];
+        }
+
+        /// <summary>
+        /// Check if the subpose exists within the pose
+        /// </summary>
+        /// <returns>true or false</returns>
+        public bool checksubPose(string poseName)
+        {
+            return subPoses.ContainsKey(poseName);
+        }
+
+        /// <summary>
         /// Gets a string list of all the sub pose names
         /// </summary>
         /// <returns>list of strings containing sub pose names</returns>
