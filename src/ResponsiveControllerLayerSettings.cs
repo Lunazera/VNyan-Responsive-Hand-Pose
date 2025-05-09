@@ -3,6 +3,7 @@ using VNyanInterface;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 using System.Linq;
+using System.Dynamic;
 
 namespace ResponsiveControllerPlugin
 {
@@ -20,7 +21,13 @@ namespace ResponsiveControllerPlugin
 
         private float slerpAmount = 1f;
 
-        private LZPose defaultPose = PoseUtils.createNewDefaultHandsPose();
+        private LZPose loadedPose;
+
+        /// TODO
+        /// - we need a way to store ALL the poses.
+        /// - Dictionary format would be most convenient, name/pose
+        /// - This is going to be written/read as JSON text file
+
 
         /**
          * Sets the Pose Layer on or off (handled by ResponsiveControllerLayer.isActive() in ResponsiveControlLayer.cs)
@@ -65,9 +72,7 @@ namespace ResponsiveControllerPlugin
             slerpAmount = val;
         }
 
-        // BoneRotation Dictionary to load in our working one when editing poses
-        private Dictionary<int, BoneRotation> LZPoseWorkingDict;
-
+        // TODO: do we actually need to "set" these? they are kind of going to be created on the fly based on whatever the pose output is.
         // Bone Vectors read from chosen LZPose (default mixed with active inputs)
         private Dictionary<int, VNyanVector3> RotationsEuler;
 
@@ -80,14 +85,6 @@ namespace ResponsiveControllerPlugin
         // Dictionary of input states currently active
         private Dictionary<string, int> InputStates = new Dictionary<string, int>();
 
-
-        // LZPose Working Dictionary
-        public void loadActivePoseDictionary(Dictionary<int, BoneRotation> incomingDictionary)
-        {
-            // TODO: does this make sense??
-            // I want to hold the int, BoneRotation dictionary temporarily here if it's loaded
-            LZPoseWorkingDict = incomingDictionary;
-        }
 
 
         // Rotations Euler Dictionary //
@@ -311,9 +308,7 @@ namespace ResponsiveControllerPlugin
         /// <param name="pose"></param>
         public void loadLZPose(LZPose pose)
         {
-            // Load the working dictionary from pose
-            loadActivePoseDictionary(pose.getmainPose());
-
+            this.loadedPose = pose; // points reference of the pose to the desired pose
             // Load the Target Euler from pose
             loadTargetPose(pose, new List<string> { });
 
@@ -322,10 +317,7 @@ namespace ResponsiveControllerPlugin
         }
 
         public void loadLZPose(LZPose pose, string subpose)
-        {
-            // Loads working dictionary from chosen subpose
-            loadActivePoseDictionary(pose.getsubPose(subpose));
-            
+        {          
             // Loads target euler from pose. TODO: this should take in list of active subposes
             loadTargetPose(pose, new List<string> { subpose } );
         }
@@ -366,10 +358,26 @@ namespace ResponsiveControllerPlugin
         /// </summary>
         /// <param name="boneNum"></param>
         /// <param name="vector"></param>
-        public void setPoseBone(int boneNum, VNyanVector3 vector)
+        public void setPoseBone(LZPose pose, int boneNum, VNyanVector3 vector)
         {
-            LZPoseWorkingDict[boneNum].setRotation(vector);
+            pose.setBone(boneNum, vector);
         }
+
+        public void setPoseBone(LZPose pose, int boneNum, VNyanVector3 vector, string subpose)
+        {
+            pose.getsubPose(subpose).setBone(boneNum, vector);
+        }
+
+        public void removePoseBone(LZPose pose, int boneNum)
+        {
+            pose.removeBone(boneNum);
+        }
+
+        public void removePoseBone(LZPose pose, int boneNum, string subpose)
+        {
+            pose.getsubPose(subpose).removeBone(boneNum);
+        }
+
 
         // Current/Target Rotation Methods //
 
@@ -388,114 +396,17 @@ namespace ResponsiveControllerPlugin
          * 
          * - Set Bone Rotation in one axis
          * - Reset bone rotations in one axis
+         * 
+         * - 
          */
 
-
-
-
-
-        /**
-         * Create Input Condition
-         */
-        //public void addInputCondition(string conditionName)
-        //{
-        //    // Adds input condition if it doesn't exist
-        //    if ( !defaultPose.getInputPoses().ContainsKey(conditionName) )
-        //    {
-        //        if(debug) Debug.Log("LZ_Controller: Input '" + conditionName + "' Not found, creating entry...");
-        //        defaultPose.getInputPoses().Add(conditionName, new LZPose { });
-        //        defaultPose.getFingerInputStates().Add(conditionName, 0f);
-        //        defaultPose.getFingerInputConditions().Add(conditionName);
-        //        VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat(prefix + conditionName, 0f);
-        //    }
-        //}
-
-        /**
-         * Remove Input State
-         */
-        //public void removeInputCondition(string conditionName)
-        //{
-        //    if ( fingerInputs.ContainsKey(conditionName) )
-        //    {
-        //        // Removes input condition from settings
-        //        if (debug) Debug.Log("LZ_Controller: Removing input '" + conditionName + "'...");
-        //        fingerInputs.Remove(conditionName);
-        //        fingerInputStates.Remove(conditionName);
-        //        fingerInputConditions.Remove(conditionName);
-        //        VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat(prefix + conditionName, 0f);
-        //    }
-        //}
-
-
-
-        /**
-         * Add bone to LZPose (subpose or mainpose)
-         */
-        //public void addInputBone(string conditionName, int boneNum)
-        //{
-        //    // Adds bone into input condition if it exists. If condition doesn't exist, creates it first
-        //    if (defaultPose.getInputPoses().ContainsKey(conditionName) )
-        //    {
-        //        if ( !checkInputConditionBone(conditionName, boneNum) )
-        //        {
-        //            defaultPose.getInputPoses()[conditionName].Add(boneNum, new VNyanVector3 { });
-        //        }
-        //    } 
-        //    else
-        //    {
-        //        addInputCondition(conditionName);
-        //        fingerInputs[conditionName].Add(boneNum, new VNyanVector3 { });
-        //    }
-        //}
-
-
-        /**
-         * Remove bone from LZPose
-         */
-        //public void removeInputBone(string conditionName, int boneNum)
-        //{
-        //    // Removes bone from input condition if it exists
-        //    if ( checkInputConditionBone(conditionName, boneNum) )
-        //    {
-        //        fingerInputs[conditionName].Remove(boneNum);
-        //    }
-        //}
-
-
-
-
-        // Finger Rotations/Vectors Methods //
-        // Here are the methods more related to actually getting and setting bone rotations. Many of these are used by the UI sliders to make changes to the pose/innput settings.
-
-        /**
-         * Gets Target Rotations Vector3
-         */
+        // Create subpose
         
+        // remove subpose
 
-        /**
-         * Gets Target Rotation according to one axis
-         */
-        //public float getFingerEulerAxis(int boneNum, int axis, string pose = "default")
-        //{
-        //    // Get finger rotation along axis if it exists
-        //    if ( fingerEulersTarget.ContainsKey(boneNum) )
-        //    {
-        //        switch(axis)
-        //        {
-        //            case 0:
-        //                return fingerEulersTarget[boneNum].X;
-        //            case 1:
-        //                return fingerEulersTarget[boneNum].Y;
-        //            case 2:
-        //                return fingerEulersTarget[boneNum].Z;
-        //            default:
-        //                return 0f;
-        //        }
-        //    }
-        //    else
-        //    {
-        //        return 0f;
-        //    }
-        //} 
+        // Get euler rotation by x/y/z axis
+
+        // Set euler rotation by x/y/z axis
+
     }
 }
