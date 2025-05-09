@@ -258,7 +258,7 @@ namespace ResponsiveControllerPlugin
         /// - This needs to be a dictionary of VnyanVectory3, not BoneRotation, because it is going to be used by our vector/quaternion methods
         /// </summary>
         /// <returns></returns>
-        public Dictionary<int, VNyanVector3> getPoseOutput()
+        public Dictionary<int, VNyanVector3> getPoseOutput(List<string> subposes)
         {
             Dictionary<int, VNyanVector3> output = new Dictionary<int, VNyanVector3> { };
 
