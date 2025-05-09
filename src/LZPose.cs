@@ -201,43 +201,41 @@ namespace ResponsiveControllerPlugin
         {
             Dictionary<string, LZPose> output = new Dictionary<string, LZPose> { };
 
-            /* Attempt 1:
-            foreach (int boneNum in getBoneNumbers())
+            List<BoneRotation> allSubBones = new List<BoneRotation>();
+
+            //Iterate through each subpose and collect all the bones
+            foreach (LZPose subPose in subPoses.Values)
             {
-                foreach (KeyValuePair<string, LZPose> subPose in subPoses)
+                //Ignore subposes inside subposes for now, as that'll need to be a recursive method
+                foreach (KeyValuePair<int, BoneRotation> kvp in mainPose)
                 {
-                    Dictionary<int, BoneRotation> subPoseRotations = subPose.Value.getmainPose();
-                    if (subPoseRotations.ContainsKey(boneNum))
-                    {
-
-                    }
+                    //Add all bones that haven't already been added
+                    allSubBones.Add(kvp.Value);
                 }
-                
             }
-            */
 
-            /* Attempt 2 */
-            foreach (int boneNum in getBoneNumbers())
-            {
-                // Get list of all the subpose dictionaries that contain an entry for the bone number
-                List<Dictionary<int,BoneRotation>> subPosesWithBone = subPoses.Select(a => a.Value.getmainPose().Where(b => b.Key == boneNum).ToDictionary(b => b.Key, b => b.Value)).ToList();
+            List<BoneRotation> meanBones = averageBoneRotations(allSubBones);
 
-                // 
+            //TODO actually do something with meanBones
 
-            }
-            
+            //List<Dictionary<int,BoneRotation>> subPosesWithBone = subPoses.Select(a => a.Value.getMainPose().Where(b => b.Key == boneNum).ToDictionary(b => b.Key, b => b.Value)).ToList();
+
             return output;
         }
 
-       /// <summary>
-       /// This should return the final result of the Pose, taking the default/main pose + the mixed-together subposes
-       /// - subpose bones will mix together by taking average when the same bones are set
-       /// - Default bones will be replaced by mixed subpose bones when they are set, otherwise pass through the default bones
-       /// - This needs to be a dictionary of VnyanVectory3, not BoneRotation, because it is going to be used by our vector/quaternion methods
-       /// </summary>
-       /// <returns></returns>
+        /// <summary>
+        /// This should return the final result of the Pose, taking the default/main pose + the mixed-together subposes
+        /// - subpose bones will mix together by taking average when the same bones are set
+        /// - Default bones will be replaced by mixed subpose bones when they are set, otherwise pass through the default bones
+        /// - This needs to be a dictionary of VnyanVectory3, not BoneRotation, because it is going to be used by our vector/quaternion methods
+        /// </summary>
+        /// <returns></returns>
         public Dictionary<int, VNyanVector3> getPoseOutput()
         {
+            Dictionary<int, VNyanVector3> output = new Dictionary<int, VNyanVector3> { };
+
+            //TODO Implement me
+
             return output;
         }
     }
