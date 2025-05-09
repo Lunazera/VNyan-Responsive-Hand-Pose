@@ -87,6 +87,115 @@ namespace ResponsiveControllerPlugin
             this.subPoses = subPoses;
         }
 
+        /// TODO 
+        /// - Add bone to subpose
+        /// - remove bone from subpose
+        /// 
+
+        
+        /// <summary>
+        /// If the bone doesn't already exist, adds new blank bone to the pose dictionary
+        /// </summary>
+        /// <param name="boneNum"></param>
+        public void setBone(int boneNum)
+        {
+            if (!checkBone(boneNum))
+            {
+                this.mainPose.Add(boneNum, new BoneRotation(boneNum));
+            }
+            
+        }
+
+        /// <summary>
+        /// Adds bone with rotation to pose if bone doesn't exist. If it does, it set's that bone to this value
+        /// </summary>
+        /// <param name="boneNum"></param>
+        /// <param name="rotation"></param>
+        public void setBone(int boneNum, VNyanVector3 rotation)
+        {
+            if (!checkBone(boneNum))
+            {
+                this.mainPose.Add(boneNum, new BoneRotation(boneNum, rotation));
+            } 
+            else
+            {
+                this.mainPose[boneNum] = new BoneRotation(boneNum, rotation);
+            }
+            
+        }
+
+        /// <summary>
+        /// Removes bone from the dictonary if it exists
+        /// </summary>
+        /// <param name="boneNum"></param>
+        public void removeBone(int boneNum)
+        {
+            if (checkBone(boneNum))
+            {
+                this.mainPose.Remove(boneNum);
+            }
+        }
+
+        /// <summary>
+        /// Checks if bone exists in dictonary
+        /// </summary>
+        /// <param name="boneNum"></param>
+        /// <returns></returns>
+        public bool checkBone(int boneNum)
+        {
+            return this.mainPose.ContainsKey(boneNum);
+        }
+
+        /// <summary>
+        /// Creates new subpose within LZPose
+        /// </summary>
+        /// <param name="name"></param>
+        public void setsubPose(string name)
+        {
+            if (!checksubPose(name))
+            {
+                this.subPoses.Add(name, new LZPose(name));
+            }
+        }
+
+        /// <summary>
+        /// Adds LZpose to subposes if it doesnt exist. If it does, then sets that pose to the new pose
+        /// </summary>
+        /// <param name="name"></param>
+        public void setsubPose(string name, LZPose pose)
+        {
+            if (!checksubPose(name))
+            {
+                this.subPoses.Add(name, pose);
+            }
+            else
+            {
+                this.subPoses[name] = pose;
+            }
+        }
+
+        /// <summary>
+        /// Removes subpose within LZPose
+        /// </summary>
+        /// <param name="name"></param>
+        public void removesubPose(string name)
+        {
+            if (checksubPose(name))
+            {
+                this.subPoses.Remove(name);
+            }
+        }
+
+        /// <summary>
+        /// Check if the subpose exists within the pose
+        /// </summary>
+        /// <returns>true or false</returns>
+        public bool checksubPose(string name)
+        {
+            return subPoses.ContainsKey(name);
+        }
+
+
         //Getters
 
         public String getName()
@@ -118,9 +227,9 @@ namespace ResponsiveControllerPlugin
         /// Gets out a single subpose
         /// </summary>
         /// <returns>single sub pose within LZpose</returns>
-        public Dictionary<int, BoneRotation> getsubPose(string poseName)
+        public LZPose getsubPose(string poseName)
         {
-            return subPoses[poseName].getmainPose();
+            return subPoses[poseName];
         }
 
         /// <summary>
@@ -130,17 +239,10 @@ namespace ResponsiveControllerPlugin
         /// <returns>int array of bone numbers</returns>
         public int[] getsubPoseBoneNumbers(string subposeName)
         {
-            return getsubPose(subposeName).Keys.ToArray();
+            return getsubPose(subposeName).getmainPose().Keys.ToArray();
         }
 
-        /// <summary>
-        /// Check if the subpose exists within the pose
-        /// </summary>
-        /// <returns>true or false</returns>
-        public bool checksubPose(string poseName)
-        {
-            return subPoses.ContainsKey(poseName);
-        }
+        
 
         /// <summary>
         /// Gets a string list of all the sub pose names
