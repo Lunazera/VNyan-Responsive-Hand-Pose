@@ -75,6 +75,30 @@ namespace ResponsiveControllerPlugin
             return rotDic;
         }
 
+        /// <summary>
+        /// Creates a new BoneRotation dictionary
+        /// </summary>
+        /// <returns></returns>
+        public static Dictionary<int, BoneRotation> createBoneRotationDictionary()
+        {
+            Dictionary<int, BoneRotation> bonerotDic = new Dictionary<int, BoneRotation>();
+            foreach (var ele in ListFingers)
+            {
+                bonerotDic.Add(ele, new BoneRotation(ele));
+            }
+            return bonerotDic;
+        }
+
+        /// <summary>
+        /// Creates an empty BoneRotation dictionary
+        /// </summary>
+        /// <returns></returns>
+        public static Dictionary<int, BoneRotation> createEmptyBoneRotationDictionary()
+        {
+            Dictionary<int, BoneRotation> bonerotDic = new Dictionary<int, BoneRotation>();
+            return bonerotDic;
+        }
+
 
         /**
          * Return a list of indices of bones on the left hand
