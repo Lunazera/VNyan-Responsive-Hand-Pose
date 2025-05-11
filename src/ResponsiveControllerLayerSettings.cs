@@ -356,6 +356,7 @@ namespace ResponsiveControllerPlugin
             this.setLoadedPose(name);
             loadInputs(getLoadedPose());
             loadTargetPose(getLoadedPose(), new List<string> { });
+            activesubPose = null;
         }
 
         /// <summary>
@@ -369,9 +370,12 @@ namespace ResponsiveControllerPlugin
             if (checkLZPose(name, subpose))
             {
                 loadTargetPose(getLoadedPose(), new List<string> { subpose });
+                activesubPose = subpose;
+                Debug.Log("The subpose '" + subpose + "' was loaded!");
             }
             else
             {
+                activesubPose = null;
                 Debug.Log("The subpose '" + subpose + "' was not found in the pose");
             }
         }
@@ -384,6 +388,7 @@ namespace ResponsiveControllerPlugin
         public void loadLZPose(string name, List<string> subposes)
         {
             this.setLoadedPose(name);
+            activesubPose = subposes[0];
             loadTargetPose(getLoadedPose(), subposes);
         }
 
@@ -529,82 +534,82 @@ namespace ResponsiveControllerPlugin
         // choose x/y/z = 0/1/2
         public float getPoseBoneAxis(int boneNum, int axis)
         {
-            switch(axis)
-            {
-                case 0:
-                   return getPoseBone(boneNum).X;
-                case 1:
-                    return getPoseBone(boneNum).Y;
-                case 2:
-                    return getPoseBone(boneNum).Z;
-                default:
-                    return 0;
-            }
-        }
-
-        public float getPoseBoneAxis(int boneNum, string name, int axis)
-        {
             /**
              * This will return the default pose bone if the subpose isn't set.
              * the context of this is showing what is on screen. if a subpose is active, any bone that isn't set will be
              * defaulted to the default mainpose. This is what the sliders should show, since that's where the fingers are
              * We will have to indicate that the bone is not set within the pose visually
              */
-            switch (axis)
+            if (activesubPose == null)
             {
-                case 0:
-                    return getPoseBone(boneNum, name).X;
-                case 1:
-                    return getPoseBone(boneNum, name).Y;
-                case 2:
-                    return getPoseBone(boneNum, name).Z;
-                default:
-                    return 0;
+                switch (axis)
+                {
+                    case 0:
+                        return getPoseBone(boneNum).X;
+                    case 1:
+                        return getPoseBone(boneNum).Y;
+                    case 2:
+                        return getPoseBone(boneNum).Z;
+                    default:
+                        return 0;
+                }
             }
+            else
+            {
+                switch (axis)
+                {
+                    case 0:
+                        return getPoseBone(boneNum, activesubPose).X;
+                    case 1:
+                        return getPoseBone(boneNum, activesubPose).Y;
+                    case 2:
+                        return getPoseBone(boneNum, activesubPose).Z;
+                    default:
+                        return 0;
+                }
+            }
+            
         }
 
         // Set pose bone by one axis
         // choose x/y/z, 
         public void setPoseBoneAxis(int boneNum, int axis, float angle)
         {
-            switch (axis)
+            if (activesubPose == null)
             {
-                case 0:
-                    getPoseBone(boneNum).X = angle;
-                    break;
-                case 1:
-                    getPoseBone(boneNum).Y = angle;
-                    break;
-                case 2:
-                    getPoseBone(boneNum).Z = angle;
-                    break;
+                switch (axis)
+                {
+                    case 0:
+                        getPoseBone(boneNum).X = angle;
+                        break;
+                    case 1:
+                        getPoseBone(boneNum).Y = angle;
+                        break;
+                    case 2:
+                        getPoseBone(boneNum).Z = angle;
+                        break;
+                }
             }
-        }
-
-        public void setPoseBoneAxis(int boneNum, string name, int axis, float angle)
-        {
-            switch (axis)
+            else
             {
-                case 0:
-                    getPoseBone(boneNum, name).X = angle;
-                    break;
-                case 1:
-                    getPoseBone(boneNum, name).Y = angle;
-                    break;
-                case 2:
-                    getPoseBone(boneNum, name).Z = angle;
-                    break;
+                switch (axis)
+                {
+                    case 0:
+                        getPoseBone(boneNum, activesubPose).X = angle;
+                        break;
+                    case 1:
+                        getPoseBone(boneNum, activesubPose).Y = angle;
+                        break;
+                    case 2:
+                        getPoseBone(boneNum, activesubPose).Z = angle;
+                        break;
+                }
             }
         }
 
         public void resetPoseBoneAxis(int boneNum, int axis)
         {
             setPoseBoneAxis(boneNum, axis, 0);
-        }
-
-        public void resetPoseBoneAxis(int boneNum, int axis, string name)
-        {
-            setPoseBoneAxis(boneNum, name, axis, 0);
         }
 
         /** Finger Bone methods
@@ -631,17 +636,6 @@ namespace ResponsiveControllerPlugin
             float distal = getPoseBoneAxis(startingBoneNum + 2, curlAxis);
             float splay = getPoseBoneAxis(startingBoneNum, splayAxis);
             float twist = getPoseBoneAxis(startingBoneNum, twistAxis);
-
-            return (proximal, intermediate, distal, splay, twist);
-        }
-
-        public (float proximal, float intermediate, float distal, float splay, float twist) getFingerBones(int startingBoneNum, string name, int curlAxis, int splayAxis, int twistAxis)
-        {
-            float proximal = getPoseBoneAxis(startingBoneNum, name, curlAxis);
-            float intermediate = getPoseBoneAxis(startingBoneNum + 1, name, curlAxis);
-            float distal = getPoseBoneAxis(startingBoneNum + 2, name, curlAxis);
-            float splay = getPoseBoneAxis(startingBoneNum, name, splayAxis);
-            float twist = getPoseBoneAxis(startingBoneNum, name, twistAxis);
 
             return (proximal, intermediate, distal, splay, twist);
         }

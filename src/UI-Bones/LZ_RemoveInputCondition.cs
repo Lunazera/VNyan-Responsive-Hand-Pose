@@ -7,12 +7,13 @@ using UnityEngine.EventSystems;
 // Removes bone from our setting when clicked
 // Cannot apply to base/default settings
 
+// TODO
+
 namespace ResponsiveControllerPlugin.UI
 {
     class LZ_RemoveInputCondition : MonoBehaviour
     {
         private Button removeButton;
-        public string conditionName = "default";
 
         public void Start()
         {
@@ -24,10 +25,8 @@ namespace ResponsiveControllerPlugin.UI
 
         public void RemoveButtonClicked()
         {
-            if (conditionName != "default")
-            {
-                ResponsiveControllerPlugin.getLayerSettings().removeInputCondition(conditionName);
-            }
+            ResponsiveControllerLayerSettings layerSettings = ResponsiveControllerPlugin.getLayerSettings();
+            // ResponsiveControllerPlugin.getLayerSettings().removeInputCondition(conditionName);
         }
     }
 }

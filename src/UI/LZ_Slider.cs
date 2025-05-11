@@ -30,17 +30,8 @@ namespace ResponsiveControllerPlugin.UI
             // We add a listener, it will run ValueChangeCheck when the value changes on the slider!
             mainSlider.onValueChanged.AddListener(delegate {ValueChangeCheck(); });
 
-            ResponsiveControllerLayerSettings settings = ResponsiveControllerPlugin.getLayerSettings();
-
-            if (settings.activesubPose != null)
-            {
-                mainSlider.value = settings.getPoseBoneAxis(boneNum, settings.activesubPose, axis);
-            }
-            else
-            {
-                mainSlider.value = settings.getPoseBoneAxis(boneNum, axis);
-            }
-
+            ResponsiveControllerLayerSettings layerSettings = ResponsiveControllerPlugin.getLayerSettings();
+            mainSlider.value = layerSettings.getPoseBoneAxis(boneNum, axis);
         }
         
         public void ValueChangeCheck()
@@ -48,18 +39,10 @@ namespace ResponsiveControllerPlugin.UI
             float slider_value = invert ? -mainSlider.value : mainSlider.value;
 
             // Check if setting exists & create if not
-            ResponsiveControllerLayerSettings settings = ResponsiveControllerPlugin.getLayerSettings();
+            ResponsiveControllerLayerSettings layerSettings = ResponsiveControllerPlugin.getLayerSettings();
 
-            // Sets bone within subpose if its there
-            if (settings.activesubPose != null)
-            {
-                settings.setPoseBoneAxis(boneNum, settings.activesubPose, axis, slider_value);
-            }
-            else
-            {
-                settings.setPoseBoneAxis(boneNum, axis, slider_value);
-            }
-            
+            layerSettings.setPoseBoneAxis(boneNum, axis, slider_value);
+ 
         }
 
         public void ButtonPressCheck()

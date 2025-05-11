@@ -28,20 +28,11 @@ namespace ResponsiveControllerPlugin.UI
 
         public void ResetButtonClicked()
         {
-            ResponsiveControllerLayerSettings settings = ResponsiveControllerPlugin.getLayerSettings();
+            ResponsiveControllerLayerSettings layerSettings = ResponsiveControllerPlugin.getLayerSettings();
+            layerSettings.resetPoseBoneAxis(boneNum, 0);
+            layerSettings.resetPoseBoneAxis(boneNum, 0);
+            layerSettings.resetPoseBoneAxis(boneNum, 0);
 
-            if (mirrorSides)
-            {
-                settings.resetFingerSettingsAxisMirror(boneNum, 0, conditionName);
-                settings.resetFingerSettingsAxisMirror(boneNum, 1, conditionName);
-                settings.resetFingerSettingsAxisMirror(boneNum, 2, conditionName);
-            } 
-            else
-            {
-                settings.resetFingerSettingsAxis(boneNum, 0, conditionName);
-                settings.resetFingerSettingsAxis(boneNum, 1, conditionName);
-                settings.resetFingerSettingsAxis(boneNum, 2, conditionName);
-            }
         }
     }
 }

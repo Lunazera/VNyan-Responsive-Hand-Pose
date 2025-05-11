@@ -13,7 +13,6 @@ namespace ResponsiveControllerPlugin.UI
     {
         private Button removeButton;
         public int boneNum;
-        public string conditionName = "default";
 
         public void Start()
         {
@@ -25,10 +24,8 @@ namespace ResponsiveControllerPlugin.UI
 
         public void RemoveButtonClicked()
         {
-            if (conditionName != "default")
-            {
-                ResponsiveControllerPlugin.getLayerSettings().removeInputBone(conditionName, boneNum);
-            }
+            ResponsiveControllerLayerSettings layerSettings = ResponsiveControllerPlugin.getLayerSettings();
+            layerSettings.removePoseBone(boneNum);
         }
     }
 }

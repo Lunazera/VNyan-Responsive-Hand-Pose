@@ -13,7 +13,6 @@ namespace ResponsiveControllerPlugin.UI
         public int boneNum;
         public int axis;
         public bool mirrorSides = false;
-        public string conditionName = "default";
 
         public void Start()
         {
@@ -25,14 +24,8 @@ namespace ResponsiveControllerPlugin.UI
 
         public void ResetAxisButtonClicked()
         {
-            if (mirrorSides)
-            {
-                ResponsiveControllerPlugin.getLayerSettings().resetFingerSettingsAxisMirror(boneNum, axis, conditionName);
-            } 
-            else
-            {
-                ResponsiveControllerPlugin.getLayerSettings().resetFingerSettingsAxis(boneNum, axis, conditionName);
-            }
+            ResponsiveControllerLayerSettings layerSettings = ResponsiveControllerPlugin.getLayerSettings();
+            layerSettings.resetPoseBoneAxis(boneNum, axis);
         }
     }
 }
