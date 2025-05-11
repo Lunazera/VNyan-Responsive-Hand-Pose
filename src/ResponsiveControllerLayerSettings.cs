@@ -351,10 +351,8 @@ namespace ResponsiveControllerPlugin
         public void loadLZPose(string name)
         {
             this.setLoadedPose(name);
+            loadInputs(getLoadedPose());
             loadTargetPose(getLoadedPose(), new List<string> { });
-
-            // Load the inputStates dictionary from pose
-            loadInputsFromPose(getLoadedPose());
         }
 
         /// <summary>
@@ -390,7 +388,7 @@ namespace ResponsiveControllerPlugin
         /// Sets the InputStates Dictionary from the current pose, converting the list to a dictonary of states
         /// </summary>
         /// <param name="pose"></param>
-        public void loadInputsFromPose(LZPose pose)
+        public void loadInputs(LZPose pose)
         {
             setInputsFromList(pose.getInputs());
         }
@@ -402,6 +400,11 @@ namespace ResponsiveControllerPlugin
         public void loadTargetPose(LZPose pose, List<string> subposes)
         {
             RotationsEuler = pose.getPoseOutput(subposes);
+        }
+
+        public void loadTargetPose( List<string> subposes)
+        {
+            RotationsEuler = getLoadedPose().getPoseOutput(subposes);
         }
 
 

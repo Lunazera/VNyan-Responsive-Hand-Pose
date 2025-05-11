@@ -6,9 +6,12 @@ namespace ResponsiveControllerPlugin
     // IPoseLayer interface implementation, from VNyanInterface.dll.
     // We only really need to do our work in doUpdate()
     // VNyan itself mainly use these methods
-    public class ResponsiveControllerLayer : IPoseLayer
+    class ResponsiveControllerLayer : IPoseLayer
     {
         private ResponsiveControllerLayerSettings settings = new ResponsiveControllerLayerSettings();
+
+        //Prefix for parameters set in VNyan, so they can be easily identified in the Monitor tool
+        public static string prefix = "LZ_ControllerPoseInput_";
 
         // Set up our frame-by-frame information
         public PoseLayerFrame ControllerPoseFrame = new PoseLayerFrame();
@@ -23,6 +26,12 @@ namespace ResponsiveControllerPlugin
         public float leftmotiondetect = 0f;
         public float rightmotiondetect = 0f;
         public float MirrorTracking = 0f;
+
+        public string poseName;
+        public string subposeName;
+
+        private string currentPoseName;
+        private string currentSubposeName;
 
         // VNyan Get Methods, VNyan uses these to get the pose after doUpdate()
 
@@ -112,14 +121,29 @@ namespace ResponsiveControllerPlugin
             RootPos = ControllerPoseFrame.RootPosition;
             RootRot = ControllerPoseFrame.RootRotation;
 
-            // Set euler vector targets from settings
-            settings.setEulerTargetsDefault();
+            /**
+             * We are going to assume that the Rotations Eulers target is already loaded.
+             * In truth this will be loaded and changed elsewhere, either according to button inputs or 
+             * UI settings
+            */
 
-            // Set the input condition settings depending on state
-            settings.setEulerTargetsInputs();
+            // If pose name changes, we will load that new pose
+            if (!(currentPoseName == poseName)) 
+            {
+                settings.loadLZPose(poseName);
+            }
 
-            // Set rotation targets from vector targets
-            settings.setFingerTargets();
+            // If subpose name changes, we will also load that new pose
+            if (!(currentSubposeName == subposeName))
+            {
+                settings.loadLZPose(poseName, subposeName);
+            }
+
+            // Get in the target Euler dictionary, calls "getposeoutput"
+            settings.loadTargetPose(new List<string> { subposeName });
+
+            // Convert Target Eulers to Target Quaternion
+            settings.updateRotationsTarget();
 
             // Rotate current quats to rotation target 
             settings.rotateCurrentTowardsTarget();
@@ -133,24 +157,19 @@ namespace ResponsiveControllerPlugin
                 MirrorTracking = VNyanInterface.VNyanInterface.VNyanParameter.getVNyanParameterFloat("MirrorTracking");
 
                 // Apply pose to fingers
-                if ((leftmotiondetect == 0f) && (MirrorTracking == 0f) || (rightmotiondetect == 0f) && (MirrorTracking == 1f))
+                if ( ((leftmotiondetect == 0f) && (MirrorTracking == 0f)) || ((rightmotiondetect == 0f) && (MirrorTracking == 1f)) )
                 {
                     foreach (int boneNum in PoseUtils.getLeftHandBoneIndices())
                     {
-                        if (settings.checkIfFingerCurrentExists(boneNum))
-                        {
-                            BoneRotations[boneNum] = settings.getfingerRotationsCurrent()[boneNum];
-                        }
+                        BoneRotations[boneNum] = settings.getRotationsCurrentBone(boneNum);
                     }
                 }
-                if ((rightmotiondetect == 0f) && (MirrorTracking == 0f) || (leftmotiondetect == 0f) && (MirrorTracking == 1f))
+                if ( ((rightmotiondetect == 0f) && (MirrorTracking == 0f)) || ((leftmotiondetect == 0f) && (MirrorTracking == 1f)) )
                 {
                     foreach (int boneNum in PoseUtils.getRightHandBoneIndices())
                     {
-                        if (settings.checkIfFingerCurrentExists(boneNum))
-                        {
-                            BoneRotations[boneNum] = settings.getfingerRotationsCurrent()[boneNum];
-                        }
+
+                        BoneRotations[boneNum] = settings.getRotationsCurrentBone(boneNum);
                     }
                 }
             }
