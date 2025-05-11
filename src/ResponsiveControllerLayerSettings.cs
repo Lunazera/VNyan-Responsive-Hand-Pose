@@ -4,6 +4,9 @@ using UnityEngine;
 using Debug = UnityEngine.Debug;
 using System.Linq;
 using System.Dynamic;
+using Newtonsoft.Json;
+
+// TODO: We probably want a way to revert changes??? and not apply them unless we want to save it
 
 namespace ResponsiveControllerPlugin
 {
@@ -23,11 +26,26 @@ namespace ResponsiveControllerPlugin
 
         private LZPose loadedPose;
 
-        /// TODO
-        /// - we need a way to store ALL the poses.
-        /// - Dictionary format would be most convenient, name/pose
-        /// - This is going to be written/read as JSON text file
+        private Dictionary<string, LZPose> LZPoseDictionary = new Dictionary<string, LZPose>();
 
+        /// <summary>
+        /// Saves the full pose dictionary into string JSON
+        /// </summary>
+        /// <returns></returns>
+        public string SerializePoses()
+        {
+            return JsonConvert.SerializeObject(LZPoseDictionary);
+        }
+
+        /// <summary>
+        /// Loads full pose dictionary from string JSON
+        /// </summary>
+        /// <param name="json"></param>
+        /// <returns></returns>
+        public Dictionary<string, LZPose> DeserializePoses(string json)
+        {
+            return JsonConvert.DeserializeObject<Dictionary<string, LZPose>>(json);
+        }
 
         /**
          * Sets the Pose Layer on or off (handled by ResponsiveControllerLayer.isActive() in ResponsiveControlLayer.cs)
@@ -73,14 +91,15 @@ namespace ResponsiveControllerPlugin
         }
 
         // TODO: do we actually need to "set" these? they are kind of going to be created on the fly based on whatever the pose output is.
+        // = PoseUtils.createQuaternionDictionary();
         // Bone Vectors read from chosen LZPose (default mixed with active inputs)
         private Dictionary<int, VNyanVector3> RotationsEuler;
 
         // Bone rotation targets as Quaternions's to read into the current bone rotations
-        private Dictionary<int, VNyanQuaternion> RotationsTarget = PoseUtils.createQuaternionDictionary();
+        private Dictionary<int, VNyanQuaternion> RotationsTarget;
 
         // Current bone rotations of the avatar model to read into pose layer
-        private Dictionary<int, VNyanQuaternion> RotationsCurrent = PoseUtils.createQuaternionDictionary();
+        private Dictionary<int, VNyanQuaternion> RotationsCurrent;
 
         // Dictionary of input states currently active
         private Dictionary<string, int> InputStates = new Dictionary<string, int>();
@@ -316,15 +335,25 @@ namespace ResponsiveControllerPlugin
             loadInputsFromPose(pose);
         }
 
+        /// <summary>
+        /// Load LZPose output with single subpose into our RotationsEuler Dict
+        /// </summary>
+        /// <param name="pose"></param>
+        /// <param name="subpose"></param>
         public void loadLZPose(LZPose pose, string subpose)
         {          
-            // Loads target euler from pose. TODO: this should take in list of active subposes
+            // Loads target euler from pose
             loadTargetPose(pose, new List<string> { subpose } );
         }
 
+        /// <summary>
+        /// Load LZPose output with mixed subpose into our RotationsEuler Dict
+        /// </summary>
+        /// <param name="pose"></param>
+        /// <param name="subposes"></param>
         public void loadLZPose(LZPose pose, List<string> subposes)
         {
-            // Loads target euler from pose. TODO: this should take in list of active subposes
+            // Loads target euler from pose
             loadTargetPose(pose, subposes);
         }
 
@@ -343,7 +372,6 @@ namespace ResponsiveControllerPlugin
         /// <param name="pose"></param>
         public void loadTargetPose(LZPose pose, List<string> subposes)
         {
-            // TODO: this should take in list of active subposes, to apply mixing
             RotationsEuler = pose.getPoseOutput(subposes);
         }
 
@@ -351,7 +379,7 @@ namespace ResponsiveControllerPlugin
         // Change pose settings
         // If the references are correct, then when we edit LZPoseWorkingDict it SHOULD edit it within the pose itself
 
-        // TODO: We probably want a way to revert changes??? and not apply them unless we want to save it
+        
 
         /// <summary>
         /// Sets bone in active pose
@@ -381,6 +409,7 @@ namespace ResponsiveControllerPlugin
 
         // Current/Target Rotation Methods //
 
+        // TODO
 
         /**
          * Functions to manage LZPoses
@@ -400,13 +429,226 @@ namespace ResponsiveControllerPlugin
          * - 
          */
 
-        // Create subpose
-        
-        // remove subpose
+        // Methods template
 
-        // Get euler rotation by x/y/z axis
+        //
+        // Making Poses/subposes
+        //
 
-        // Set euler rotation by x/y/z axis
+        // Create new LZPose object
+        // - this will make a new LZPose with a name and default rotations and add it into our LZPoseDictionary
+        public void createLZPose(string name)
+        {
+            if (!checkLZPose(name))
+            {
+                LZPose newPose = new LZPose(name);
+                LZPoseDictionary.Add(name, newPose);
 
+            }
+        }
+
+        // Create new LZPose object with given mainpose and subposes
+        // - this will effectively duplicate the currently loaded pose into a new pose
+        public void duplicateLZPose(string name, LZPose currentPose)
+        {
+            if (!checkLZPose(name))
+            {
+                LZPose newPose = new LZPose(name, currentPose.pose(), currentPose.getsubPoses());
+                LZPoseDictionary.Add(name, newPose);
+            }
+        }
+
+        // Remove LZPose object
+        public void removeLZPose(string name)
+        {
+            if (checkLZPose(name))
+            {
+                LZPoseDictionary.Remove(name);
+            }  
+        }
+
+        // Check if LZPose exists
+        public bool checkLZPose(string name)
+        {
+            return LZPoseDictionary.ContainsKey(name);
+        }
+
+        //
+        // Editing Poses/subposes
+        //
+
+        // Get LZPose euler rotation by x/y/z axis
+        // - if no inputs active, this should be the mainpose
+        // - if input is active, this should be the active one
+        public VNyanVector3 getPoseBone(int boneNum)
+        {
+            // uses LoadedPose
+            return loadedPose.getBoneEulerRotation(boneNum);
+        }
+
+        public VNyanVector3 getPoseBone(int boneNum, string name)
+        {
+            // uses LoadedPose
+            return loadedPose.getBoneEulerRotation(boneNum, name);
+        }
+
+        // Set LZPose mainpose or subpose euler rotation by x/y/z axis
+        // - if no inputs active, this should be the mainpose
+        // - if input is active, this should be the active one
+        public void setPoseBone(int boneNum, VNyanVector3 rotation)
+        {
+            loadedPose.setBone(boneNum, rotation);
+        }
+
+        public void setPoseBone(int boneNum, VNyanVector3 rotation, string name)
+        {
+            loadedPose.setBone(boneNum, rotation, name);
+        }
+
+        /// <summary>
+        /// Removes bone from the pose
+        /// </summary>
+        /// <param name="boneNum"></param>
+        public void removePoseBone(int boneNum)
+        {
+            loadedPose.removeBone(boneNum);
+        }
+
+        /// <summary>
+        /// Removes bone from the subpose if subpose exists
+        /// </summary>
+        /// <param name="boneNum"></param>
+        /// <param name="name"></param>
+        public void removePoseBone(int boneNum, string name)
+        {
+            loadedPose.removeBone(boneNum, name);
+        }
+
+        //
+        // METHODS FOR UI
+        //
+        // note: resetting is really the same thing as deleting.
+
+        // Get pose bone by one axis
+        // choose x/y/z = 0/1/2
+        public float getPoseBoneAxis(int boneNum, int axis)
+        {
+            switch(axis)
+            {
+                case 0:
+                   return getPoseBone(boneNum).X;
+                case 1:
+                    return getPoseBone(boneNum).Y;
+                case 2:
+                    return getPoseBone(boneNum).Z;
+                default:
+                    return 0;
+            }
+        }
+
+        public float getPoseBoneAxis(int boneNum, string name, int axis)
+        {
+            /**
+             * This will return the default pose bone if the subpose isn't set.
+             * the context of this is showing what is on screen. if a subpose is active, any bone that isn't set will be
+             * defaulted to the default mainpose. This is what the sliders should show, since that's where the fingers are
+             * We will have to indicate that the bone is not set within the pose visually
+             */
+            switch (axis)
+            {
+                case 0:
+                    return getPoseBone(boneNum, name).X;
+                case 1:
+                    return getPoseBone(boneNum, name).Y;
+                case 2:
+                    return getPoseBone(boneNum, name).Z;
+                default:
+                    return 0;
+            }
+        }
+
+        // Set pose bone by one axis
+        // choose x/y/z, 
+        public void setPoseBoneAxis(int boneNum, int axis, float angle)
+        {
+            switch (axis)
+            {
+                case 0:
+                    getPoseBone(boneNum).X = angle;
+                    break;
+                case 1:
+                    getPoseBone(boneNum).Y = angle;
+                    break;
+                case 2:
+                    getPoseBone(boneNum).Z = angle;
+                    break;
+            }
+        }
+
+        public void setPoseBoneAxis(int boneNum, string name, int axis, float angle)
+        {
+            switch (axis)
+            {
+                case 0:
+                    getPoseBone(boneNum, name).X = angle;
+                    break;
+                case 1:
+                    getPoseBone(boneNum, name).Y = angle;
+                    break;
+                case 2:
+                    getPoseBone(boneNum, name).Z = angle;
+                    break;
+            }
+        }
+
+        public void resetPoseBoneAxis(int boneNum, int axis)
+        {
+            setPoseBoneAxis(boneNum, axis, 0);
+        }
+
+        public void resetPoseBoneAxis(int boneNum, int axis, string name)
+        {
+            setPoseBoneAxis(boneNum, name, axis, 0);
+        }
+
+        /** Finger Bone methods
+        * These are unique for fingers based on how they are organized and articulated,
+        * mainly to make working with them in the UI easier
+        */
+
+        /// <summary>
+        /// Helper method to return tuple containing predictable structure of finger bones
+        /// A finger is broken into three bones: proximal, intermediate, and distal. If you know the proximal bone, the others are predictable
+        /// We can only articulate on one axis, the "Curl" axis
+        /// We can also "Splay" our fingers from starting finger bone
+        /// We can also kind of "twist" from the same bone (not really, but it's useful in posing)
+        /// </summary>
+        /// <param name="startingBoneNum"></param>
+        /// <param name="curlAxis"></param>
+        /// <param name="splayAxis"></param>
+        /// <param name="twistAxis"></param>
+        /// <returns></returns>
+        public (float proximal, float intermediate, float distal, float splay, float twist) getFingerBones(int startingBoneNum, int curlAxis, int splayAxis, int twistAxis)
+        {
+            float proximal = getPoseBoneAxis(startingBoneNum, curlAxis);
+            float intermediate = getPoseBoneAxis(startingBoneNum + 1, curlAxis);
+            float distal = getPoseBoneAxis(startingBoneNum + 2, curlAxis);
+            float splay = getPoseBoneAxis(startingBoneNum, splayAxis);
+            float twist = getPoseBoneAxis(startingBoneNum, twistAxis);
+
+            return (proximal, intermediate, distal, splay, twist);
+        }
+
+        public (float proximal, float intermediate, float distal, float splay, float twist) getFingerBones(int startingBoneNum, string name, int curlAxis, int splayAxis, int twistAxis)
+        {
+            float proximal = getPoseBoneAxis(startingBoneNum, name, curlAxis);
+            float intermediate = getPoseBoneAxis(startingBoneNum + 1, name, curlAxis);
+            float distal = getPoseBoneAxis(startingBoneNum + 2, name, curlAxis);
+            float splay = getPoseBoneAxis(startingBoneNum, name, splayAxis);
+            float twist = getPoseBoneAxis(startingBoneNum, name, twistAxis);
+
+            return (proximal, intermediate, distal, splay, twist);
+        }
+ 
     }
 }
