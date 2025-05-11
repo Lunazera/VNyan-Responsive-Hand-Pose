@@ -87,12 +87,54 @@ namespace ResponsiveControllerPlugin
             this.subPoses = subPoses;
         }
 
-        /// TODO 
-        /// - Add bone to subpose
-        /// - remove bone from subpose
-        /// 
+        /// <summary>
+        /// Gets BoneRotation from mainpose
+        /// </summary>
+        /// <param name="boneNum">Bone Number</param>
+        /// <returns></returns>
+        public BoneRotation getBone(int boneNum)
+        {
+            return this.mainPose[boneNum];
+        }
 
-        
+        /// <summary>
+        /// Gets BoneRotation checking for a subpose. If the subpose is found in the pose, it grabs that bone. Otherwise it gets the main pose bone
+        /// </summary>
+        /// <param name="boneNum">Bone Number</param>
+        /// <param name="name">Subpose name</param>
+        /// <returns></returns>
+        public BoneRotation getBone(int boneNum, string name)
+        {
+            if (checksubPose(name))
+            {
+                return getsubPose(name).getBone(boneNum);
+            } 
+            else
+            {
+                return this.mainPose[boneNum];
+            }
+        }
+
+        public VNyanVector3 getBoneEulerRotation(int boneNum)
+        {
+            return getBone(boneNum).getEulerRotation();
+        }
+
+        public VNyanVector3 getBoneEulerRotation(int boneNum, string name)
+        {
+            return getBone(boneNum, name).getEulerRotation();
+        }
+
+        public VNyanQuaternion getBoneRotation(int boneNum)
+        {
+            return getBone(boneNum).getRotation();
+        }
+
+        public VNyanQuaternion getBoneRotation(int boneNum, string name)
+        {
+            return getBone(boneNum, name).getRotation();
+        }
+
         /// <summary>
         /// If the bone doesn't already exist, adds new blank bone to the pose dictionary
         /// </summary>
@@ -104,6 +146,19 @@ namespace ResponsiveControllerPlugin
                 this.mainPose.Add(boneNum, new BoneRotation(boneNum));
             }
             
+        }
+
+        /// <summary>
+        /// Sets bone to subpose if subpose exists, otherwise does nothing
+        /// </summary>
+        /// <param name="boneNum"></param>
+        /// <param name="name"></param>
+        public void setBone(int boneNum, string name)
+        {
+            if (checksubPose(name))
+            {
+                this.getsubPose(name).setBone(boneNum);
+            }
         }
 
         /// <summary>
@@ -125,6 +180,20 @@ namespace ResponsiveControllerPlugin
         }
 
         /// <summary>
+        /// Sets bone with rotation to subpose if subpose exists, otherwise does nothing
+        /// </summary>
+        /// <param name="boneNum"></param>
+        /// <param name="rotation"></param>
+        /// <param name="name"></param>
+        public void setBone(int boneNum, VNyanVector3 rotation, string name)
+        {
+            if (checksubPose(name))
+            {
+                this.getsubPose(name).setBone(boneNum, rotation);
+            }
+        }
+
+        /// <summary>
         /// Removes bone from the dictonary if it exists
         /// </summary>
         /// <param name="boneNum"></param>
@@ -133,6 +202,14 @@ namespace ResponsiveControllerPlugin
             if (checkBone(boneNum))
             {
                 this.mainPose.Remove(boneNum);
+            }
+        }
+
+        public void removeBone(int boneNum, string name)
+        {
+            if (checksubPose(name))
+            {
+                this.removeBone(boneNum);
             }
         }
 
@@ -203,7 +280,12 @@ namespace ResponsiveControllerPlugin
             return name;
         }
 
-        public Dictionary<int, BoneRotation> getmainPose()
+        /// <summary>
+        /// Gets the mainPose containing all the bone rotations.
+        /// Subposes will also contain their own mainPose, 
+        /// </summary>
+        /// <returns></returns>
+        public Dictionary<int, BoneRotation> pose()
         {
             return mainPose;
         }
@@ -234,12 +316,13 @@ namespace ResponsiveControllerPlugin
 
         /// <summary>
         /// Gets array of bone numbers within the subpose
+        /// [Maybe not needed?]
         /// </summary>
         /// <param name="subposeName">string name of the subpose</param>
         /// <returns>int array of bone numbers</returns>
         public int[] getsubPoseBoneNumbers(string subposeName)
         {
-            return getsubPose(subposeName).getmainPose().Keys.ToArray();
+            return getsubPose(subposeName).pose().Keys.ToArray();
         }
 
         
