@@ -29,21 +29,6 @@ namespace ResponsiveControllerPlugin.UI
 
         public void CloseButtonClicked()
         {
-            ResponsiveControllerLayerSettings settings = ResponsiveControllerPlugin.getLayerSettings();
-
-            settings.resetInputSimulateStates();
-            // If the dictionary exists, which it always should but just in case.
-            if (LZ_UI.settings != null)
-            {
-                //LZ_UI.settings["fingerPoses"] = JsonConvert.SerializeObject(ResponsiveControllerSettings.fingerPoses);
-                //LZ_UI.settings["fingerInputs"] = JsonConvert.SerializeObject(ResponsiveControllerSettings.fingerInputs);
-                //LZ_UI.settings["fingerInputStates"] = JsonConvert.SerializeObject(ResponsiveControllerSettings.fingerInputStates);
-                //LZ_UI.settings["fingerInputConditions"] = JsonConvert.SerializeObject(ResponsiveControllerSettings.fingerInputConditions);
-
-                // Write the dictionary to a settings file!
-                //VNyanInterface.VNyanInterface.VNyanSettings.saveSettings(setting_name, LZ_UI.settings);
-                //Debug.Log("LZ_Controller: Settings saved!");
-            }
             this.windowPrefab.SetActive(false);
         }
     }

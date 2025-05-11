@@ -25,8 +25,11 @@ namespace ResponsiveControllerPlugin
 
         private LZPose loadedPose;
 
+        public string activesubPose {  get; set; }
+
+
         private Dictionary<string, LZPose> LZPoseDictionary = new Dictionary<string, LZPose>();
-        
+
         
         /**
          * Sets the Pose Layer on or off (handled by ResponsiveControllerLayer.isActive() in ResponsiveControlLayer.cs)

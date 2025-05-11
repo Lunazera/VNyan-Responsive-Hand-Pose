@@ -27,9 +27,7 @@ namespace ResponsiveControllerPlugin
         public float rightmotiondetect = 0f;
         public float MirrorTracking = 0f;
 
-        public string poseName;
-        public string subposeName;
-
+        
         private string currentPoseName;
         private string currentSubposeName;
 

@@ -77,7 +77,7 @@ namespace ResponsiveControllerPlugin.UI
             if (buttonState == 0f)
             {
                 buttonState = 1f;
-                LZ_UI.settings[buttonName] = Convert.ToString(buttonState);
+                LZ_UI.settingsJSON[buttonName] = Convert.ToString(buttonState);
                 VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat(buttonName, buttonState);
                 ChangeButtonColor(true);
             }
@@ -85,7 +85,7 @@ namespace ResponsiveControllerPlugin.UI
             else
             {
                 buttonState = 0f;
-                LZ_UI.settings[buttonName] = Convert.ToString(buttonState);
+                LZ_UI.settingsJSON[buttonName] = Convert.ToString(buttonState);
                 VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat(buttonName, buttonState);
                 ChangeButtonColor(false);
             }

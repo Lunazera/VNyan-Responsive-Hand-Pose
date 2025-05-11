@@ -24,16 +24,11 @@ namespace ResponsiveControllerPlugin.UI
             ResponsiveControllerLayerSettings layerSettings = ResponsiveControllerPlugin.getLayerSettings();
 
             // If the dictionary exists, which it always should but just in case.
-            if (LZ_UI.settings != null && layerSettings != null)
+            if (LZ_UI.settingsJSON != null && layerSettings != null)
             {
-
-                LZ_UI.settings["fingerPoses"] = JsonConvert.SerializeObject(layerSettings.getFingerPoses());
-                LZ_UI.settings["fingerInputs"] = JsonConvert.SerializeObject(layerSettings.getFingerInputs());
-                LZ_UI.settings["fingerInputStates"] = JsonConvert.SerializeObject(layerSettings.getFingerInputStates());
-                LZ_UI.settings["fingerInputConditions"] = JsonConvert.SerializeObject(layerSettings.getFingerInputConditions());
-
+                LZ_UI.settingsJSON["LZPoseDictionary"] = layerSettings.SerializePoses();
                 // Write the dictionary to a settings file!
-                VNyanInterface.VNyanInterface.VNyanSettings.saveSettings(setting_name, LZ_UI.settings);
+                VNyanInterface.VNyanInterface.VNyanSettings.saveSettings(setting_name, LZ_UI.settingsJSON);
                 Debug.Log("LZ_Controller: Settings saved!");
             }
         }

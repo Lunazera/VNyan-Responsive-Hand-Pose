@@ -11,7 +11,6 @@ namespace ResponsiveControllerPlugin.UI
         public int axis;
         public bool invert = false;
         public bool flipSides = false;
-        public string conditionName = "default";
         public bool mirrorSides = false;
 
         public Button mainButton;
@@ -33,14 +32,15 @@ namespace ResponsiveControllerPlugin.UI
 
             ResponsiveControllerLayerSettings settings = ResponsiveControllerPlugin.getLayerSettings();
 
-            if (settings.checkInputCondition(conditionName))
+            if (settings.activesubPose != null)
             {
-                mainSlider.value = settings.getFingerEulerAxis(boneNum, axis, conditionName);
+                mainSlider.value = settings.getPoseBoneAxis(boneNum, settings.activesubPose, axis);
             }
             else
             {
-                mainSlider.value = default_value;
+                mainSlider.value = settings.getPoseBoneAxis(boneNum, axis);
             }
+
         }
         
         public void ValueChangeCheck()
@@ -49,19 +49,17 @@ namespace ResponsiveControllerPlugin.UI
 
             // Check if setting exists & create if not
             ResponsiveControllerLayerSettings settings = ResponsiveControllerPlugin.getLayerSettings();
-            settings.addInputCondition(conditionName);
 
-            // Check if setting for bone exists within setting & create if not
-            settings.addInputBone(conditionName, boneNum);
-
-            if (mirrorSides)
+            // Sets bone within subpose if its there
+            if (settings.activesubPose != null)
             {
-                //ResponsiveControllerSettings.setFingerSettingsAxisMirror(boneNum, axis, slider_value, conditionName);
-            } 
+                settings.setPoseBoneAxis(boneNum, settings.activesubPose, axis, slider_value);
+            }
             else
             {
-                //ResponsiveControllerSettings.setFingerSettingsAxis(boneNum, axis, slider_value, conditionName);
+                settings.setPoseBoneAxis(boneNum, axis, slider_value);
             }
+            
         }
 
         public void ButtonPressCheck()

@@ -24,15 +24,15 @@ namespace ResponsiveControllerPlugin.UI
             // We add a listener that will run ButtonPressCheck if the button is pressed.
             mainButton.onClick.AddListener(delegate { ButtonPressCheck(); });
 
-            if (LZ_UI.settings.ContainsKey(fieldName))
+            if (LZ_UI.settingsJSON.ContainsKey(fieldName))
             {
-                fieldValue = Convert.ToSingle(LZ_UI.settings[fieldName]);
+                fieldValue = Convert.ToSingle(LZ_UI.settingsJSON[fieldName]);
                 mainField.text = Convert.ToString(fieldValue);
                 VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat(fieldName, fieldValue);
             } 
             else
             {
-                LZ_UI.settings.Add(fieldName, Convert.ToString(fieldValue));
+                LZ_UI.settingsJSON.Add(fieldName, Convert.ToString(fieldValue));
                 mainField.text = Convert.ToString(fieldValue);
                 VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat(fieldName, fieldValue);
             }
@@ -44,12 +44,12 @@ namespace ResponsiveControllerPlugin.UI
             // We need to sanitate the input a bit. Unless the input can be converted to a float we can't use it.
             if (float.TryParse(mainField.text, out float fieldValue))
             {
-                LZ_UI.settings[fieldName] = Convert.ToString(fieldValue);
+                LZ_UI.settingsJSON[fieldName] = Convert.ToString(fieldValue);
                 VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat(fieldName, fieldValue);
             }
             else
             {
-                mainField.text = LZ_UI.settings[fieldName];
+                mainField.text = LZ_UI.settingsJSON[fieldName];
             }
         }
     }
