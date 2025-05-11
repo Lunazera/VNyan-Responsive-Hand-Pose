@@ -414,7 +414,7 @@ namespace ResponsiveControllerPlugin
             if (!checkLZPose(name))
             {
                 LZPose newPose = new LZPose(name);
-                LZPoseDictionary.Add(name, newPose);
+                this.getLZPoseDictionary().Add(name, newPose);
             }
         }
 
@@ -425,7 +425,7 @@ namespace ResponsiveControllerPlugin
             if (!checkLZPose(name) && checkLZPose(currentPose))
             {
                 LZPose newPose = new LZPose(name, getLZPoseDictionary(currentPose).pose(), getLZPoseDictionary(currentPose).getsubPoses() );
-                LZPoseDictionary.Add(name, newPose);
+                this.getLZPoseDictionary().Add(name, newPose);
             }
         }
 
@@ -434,7 +434,7 @@ namespace ResponsiveControllerPlugin
         {
             if (checkLZPose(name))
             {
-                LZPoseDictionary.Remove(name);
+                this.getLZPoseDictionary().Remove(name);
             }
         }
 
@@ -446,7 +446,7 @@ namespace ResponsiveControllerPlugin
         /// <returns></returns>
         public bool checkLZPose(string name)
         {
-            return LZPoseDictionary.ContainsKey(name);
+            return this.getLZPoseDictionary().ContainsKey(name);
         }
 
         /// <summary>
@@ -459,7 +459,7 @@ namespace ResponsiveControllerPlugin
         {
             if (checkLZPose(name))
             {
-                return getLZPoseDictionary(name).checksubPose(subpose);
+                return this.getLZPoseDictionary(name).checksubPose(subpose);
             }
             else
             {
@@ -474,14 +474,12 @@ namespace ResponsiveControllerPlugin
         // - if input is active, this should be the active one
         public VNyanVector3 getPoseBone(int boneNum)
         {
-            // uses LoadedPose
-            return loadedPose.getBoneEulerRotation(boneNum);
+            return getLoadedPose().getBoneEulerRotation(boneNum);
         }
 
-        public VNyanVector3 getPoseBone(int boneNum, string name)
+        public VNyanVector3 getPoseBone(int boneNum, string subpose)
         {
-            // uses LoadedPose
-            return loadedPose.getBoneEulerRotation(boneNum, name);
+            return getLoadedPose().getBoneEulerRotation(boneNum, subpose);
         }
 
         // Set LZPose mainpose or subpose euler rotation by x/y/z axis
@@ -489,12 +487,12 @@ namespace ResponsiveControllerPlugin
         // - if input is active, this should be the active one
         public void setPoseBone(int boneNum, VNyanVector3 rotation)
         {
-            loadedPose.setBone(boneNum, rotation);
+            getLoadedPose().setBone(boneNum, rotation);
         }
 
-        public void setPoseBone(int boneNum, VNyanVector3 rotation, string name)
+        public void setPoseBone(int boneNum, VNyanVector3 rotation, string subpose)
         {
-            loadedPose.setBone(boneNum, rotation, name);
+            getLoadedPose().setBone(boneNum, rotation, subpose);
         }
 
         /// <summary>
@@ -503,39 +501,17 @@ namespace ResponsiveControllerPlugin
         /// <param name="boneNum"></param>
         public void removePoseBone(int boneNum)
         {
-            loadedPose.removeBone(boneNum);
+            getLoadedPose().removeBone(boneNum);
         }
 
         /// <summary>
         /// Removes bone from the subpose if subpose exists
         /// </summary>
         /// <param name="boneNum"></param>
-        /// <param name="name"></param>
-        public void removePoseBone(int boneNum, string name)
+        /// <param name="subpose"></param>
+        public void removePoseBone(int boneNum, string subpose)
         {
-            loadedPose.removeBone(boneNum, name);
-        }
-
-        /* These lets you specify a specific pose to change
-         */
-        public void setPoseBone(LZPose pose, int boneNum, VNyanVector3 vector)
-        {
-            pose.setBone(boneNum, vector);
-        }
-
-        public void setPoseBone(LZPose pose, int boneNum, VNyanVector3 vector, string subpose)
-        {
-            pose.getsubPose(subpose).setBone(boneNum, vector);
-        }
-
-        public void removePoseBone(LZPose pose, int boneNum)
-        {
-            pose.removeBone(boneNum);
-        }
-
-        public void removePoseBone(LZPose pose, int boneNum, string subpose)
-        {
-            pose.getsubPose(subpose).removeBone(boneNum);
+            getLoadedPose().removeBone(boneNum, subpose);
         }
 
         //
