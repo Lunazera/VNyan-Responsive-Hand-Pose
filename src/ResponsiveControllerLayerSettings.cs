@@ -5,6 +5,8 @@ using Debug = UnityEngine.Debug;
 using System.Linq;
 using System.Dynamic;
 using Newtonsoft.Json;
+using System;
+using System.Xml.Linq;
 
 // TODO: We probably want a way to revert changes??? and not apply them unless we want to save it
 
@@ -13,9 +15,6 @@ namespace ResponsiveControllerPlugin
     // This is split into two sections, this settings section to call/store all the data, and the Interface implementation below
     class ResponsiveControllerLayerSettings
     {
-        //Prefix for parameters set in VNyan, so they can be easily identified in the Monitor tool
-        public static string prefix = "LZ_ControllerPoseInput_";
-
         //If true, Debug.Log messages will be printed out
         private bool debug = false;
 
@@ -27,26 +26,8 @@ namespace ResponsiveControllerPlugin
         private LZPose loadedPose;
 
         private Dictionary<string, LZPose> LZPoseDictionary = new Dictionary<string, LZPose>();
-
-        /// <summary>
-        /// Saves the full pose dictionary into string JSON
-        /// </summary>
-        /// <returns></returns>
-        public string SerializePoses()
-        {
-            return JsonConvert.SerializeObject(LZPoseDictionary);
-        }
-
-        /// <summary>
-        /// Loads full pose dictionary from string JSON
-        /// </summary>
-        /// <param name="json"></param>
-        /// <returns></returns>
-        public Dictionary<string, LZPose> DeserializePoses(string json)
-        {
-            return JsonConvert.DeserializeObject<Dictionary<string, LZPose>>(json);
-        }
-
+        
+        
         /**
          * Sets the Pose Layer on or off (handled by ResponsiveControllerLayer.isActive() in ResponsiveControlLayer.cs)
          */
@@ -96,13 +77,72 @@ namespace ResponsiveControllerPlugin
         private Dictionary<int, VNyanVector3> RotationsEuler;
 
         // Bone rotation targets as Quaternions's to read into the current bone rotations
-        private Dictionary<int, VNyanQuaternion> RotationsTarget;
+        private Dictionary<int, VNyanQuaternion> RotationsTarget = PoseUtils.createQuaternionDictionary();
 
         // Current bone rotations of the avatar model to read into pose layer
-        private Dictionary<int, VNyanQuaternion> RotationsCurrent;
+        private Dictionary<int, VNyanQuaternion> RotationsCurrent = PoseUtils.createQuaternionDictionary();
 
         // Dictionary of input states currently active
         private Dictionary<string, int> InputStates = new Dictionary<string, int>();
+
+
+        /* LoadedPose points to an entry in the LZPoseDictionary
+         */
+        public LZPose getLoadedPose()
+        {
+            return loadedPose;
+        }
+
+        public void setLoadedPose(string name)
+        {
+            if (checkLZPose(name))
+            {
+                this.loadedPose = this.LZPoseDictionary[name];
+            } 
+            else
+            {
+                Debug.Log("The pose " + name + " was not found in the Pose dictionary.");
+            }
+        }
+
+        public Dictionary<string, LZPose> getLZPoseDictionary() 
+        { 
+            return LZPoseDictionary; 
+        }
+        public LZPose getLZPoseDictionary(string name)
+        {
+            return LZPoseDictionary[name];
+        }
+        public void setLZPoseDictionary(Dictionary<string, LZPose> newDictionary)
+        {
+            LZPoseDictionary = newDictionary;
+        }
+
+        /// <summary>
+        /// Saves the full pose dictionary into string JSON
+        /// </summary>
+        /// <returns></returns>
+        public string SerializePoses()
+        {
+            Debug.Log("Converting Pose dictionary to Json");
+            return JsonConvert.SerializeObject(getLZPoseDictionary());
+        }
+
+        /// <summary>
+        /// Loads full pose dictionary from string JSON
+        /// </summary>
+        /// <param name="json"></param>
+        /// <returns></returns>
+        public Dictionary<string, LZPose> DeserializePoses(string json)
+        {
+            return JsonConvert.DeserializeObject<Dictionary<string, LZPose>>(json);
+        }
+
+        public void LoadPosesDictionary(string json)
+        {
+            setLZPoseDictionary(DeserializePoses(json));
+            Debug.Log("Pose dictionary loaded from JSON!");
+        }
 
 
 
@@ -153,7 +193,7 @@ namespace ResponsiveControllerPlugin
         }
 
         /// <summary>
-        /// Updates the RotationsTarget dictionary by converting from the Rotation Eulers
+        /// Updates the bones in RotationsTarget dictionary by converting from the Rotation Eulers
         /// We get the Euler rotation, convert it to a quaternion, then set that quaternion to Rotations Target
         /// </summary>
         public void updateRotationsTarget()
@@ -163,12 +203,6 @@ namespace ResponsiveControllerPlugin
                 setRotationsTargetBone(boneNum, QuaternionMethods.setFromVNyanVector3( getRotationsEulersBone(boneNum) ));
             }
         }
-
-        public bool checkIfTargetBoneExists(int boneNum)
-        {
-            return RotationsTarget.ContainsKey(boneNum);
-        }
-       
 
         // Rotations Current Dictionary //
         //
@@ -208,11 +242,6 @@ namespace ResponsiveControllerPlugin
                     setRotationsCurrentBone(boneNum, QuaternionMethods.convertQuaternionU2V(newRotation));
                 }
             }
-        }
-
-        public bool checkIfCurrentBoneExists(int boneNum)
-        {
-            return RotationsCurrent.ContainsKey(boneNum);
         }
 
 
@@ -311,20 +340,21 @@ namespace ResponsiveControllerPlugin
       
         // Working with LZPoses //
 
-        // Load in new pose
+        /*
+         * LoadedPost should point to one of the poses within the LZPse dictionary. 
+         */
 
         /// <summary>
         /// Loads a new LZPose, using the Working dictionary to reference the main pose  
         /// </summary>
         /// <param name="pose"></param>
-        public void loadLZPose(LZPose pose)
+        public void loadLZPose(string name)
         {
-            this.loadedPose = pose; // points reference of the pose to the desired pose
-            // Load the Target Euler from pose
-            loadTargetPose(pose, new List<string> { });
+            this.setLoadedPose(name);
+            loadTargetPose(getLoadedPose(), new List<string> { });
 
             // Load the inputStates dictionary from pose
-            loadInputsFromPose(pose);
+            loadInputsFromPose(getLoadedPose());
         }
 
         /// <summary>
@@ -332,10 +362,17 @@ namespace ResponsiveControllerPlugin
         /// </summary>
         /// <param name="pose"></param>
         /// <param name="subpose"></param>
-        public void loadLZPose(LZPose pose, string subpose)
-        {          
-            // Loads target euler from pose
-            loadTargetPose(pose, new List<string> { subpose } );
+        public void loadLZPose(string name, string subpose)
+        {
+            this.setLoadedPose(name);
+            if (checkLZPose(name, subpose))
+            {
+                loadTargetPose(getLoadedPose(), new List<string> { subpose });
+            }
+            else
+            {
+                Debug.Log("The subpose '" + subpose + "' was not found in the pose");
+            }
         }
 
         /// <summary>
@@ -343,10 +380,10 @@ namespace ResponsiveControllerPlugin
         /// </summary>
         /// <param name="pose"></param>
         /// <param name="subposes"></param>
-        public void loadLZPose(LZPose pose, List<string> subposes)
+        public void loadLZPose(string name, List<string> subposes)
         {
-            // Loads target euler from pose
-            loadTargetPose(pose, subposes);
+            this.setLoadedPose(name);
+            loadTargetPose(getLoadedPose(), subposes);
         }
 
         /// <summary>
@@ -368,84 +405,26 @@ namespace ResponsiveControllerPlugin
         }
 
 
-        // Change pose settings
-        // If the references are correct, then when we edit LZPoseWorkingDict it SHOULD edit it within the pose itself
-
-        
-
         /// <summary>
-        /// Sets bone in active pose
+        /// Creates new LZ pose if it doesn't exist and adds to dictionary
         /// </summary>
-        /// <param name="boneNum"></param>
-        /// <param name="vector"></param>
-        public void setPoseBone(LZPose pose, int boneNum, VNyanVector3 vector)
-        {
-            pose.setBone(boneNum, vector);
-        }
-
-        public void setPoseBone(LZPose pose, int boneNum, VNyanVector3 vector, string subpose)
-        {
-            pose.getsubPose(subpose).setBone(boneNum, vector);
-        }
-
-        public void removePoseBone(LZPose pose, int boneNum)
-        {
-            pose.removeBone(boneNum);
-        }
-
-        public void removePoseBone(LZPose pose, int boneNum, string subpose)
-        {
-            pose.getsubPose(subpose).removeBone(boneNum);
-        }
-
-
-        // Current/Target Rotation Methods //
-
-        // TODO
-
-        /**
-         * Functions to manage LZPoses
-         * - Create new LZPose
-         * - Create new subPose within LZPose
-         * - Manage Input States/Conditions
-         * - - create input state
-         * - - get input state
-         * - - set on/off
-         * - - delete input state
-         * - Add bone setting to LZPose
-         * - - main pose or subpose
-         * 
-         * - Set Bone Rotation in one axis
-         * - Reset bone rotations in one axis
-         * 
-         * - 
-         */
-
-        // Methods template
-
-        //
-        // Making Poses/subposes
-        //
-
-        // Create new LZPose object
-        // - this will make a new LZPose with a name and default rotations and add it into our LZPoseDictionary
+        /// <param name="name"></param>
         public void createLZPose(string name)
         {
             if (!checkLZPose(name))
             {
                 LZPose newPose = new LZPose(name);
                 LZPoseDictionary.Add(name, newPose);
-
             }
         }
 
         // Create new LZPose object with given mainpose and subposes
         // - this will effectively duplicate the currently loaded pose into a new pose
-        public void duplicateLZPose(string name, LZPose currentPose)
+        public void createLZPose(string name, string currentPose)
         {
-            if (!checkLZPose(name))
+            if (!checkLZPose(name) && checkLZPose(currentPose))
             {
-                LZPose newPose = new LZPose(name, currentPose.pose(), currentPose.getsubPoses());
+                LZPose newPose = new LZPose(name, getLZPoseDictionary(currentPose).pose(), getLZPoseDictionary(currentPose).getsubPoses() );
                 LZPoseDictionary.Add(name, newPose);
             }
         }
@@ -456,19 +435,40 @@ namespace ResponsiveControllerPlugin
             if (checkLZPose(name))
             {
                 LZPoseDictionary.Remove(name);
-            }  
+            }
         }
 
-        // Check if LZPose exists
+        
+        /// <summary>
+        /// Check if pose exists
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public bool checkLZPose(string name)
         {
             return LZPoseDictionary.ContainsKey(name);
         }
 
-        //
-        // Editing Poses/subposes
-        //
+        /// <summary>
+        /// Check if subpose exists within pose in dictionary
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="subpose"></param>
+        /// <returns></returns>
+        public bool checkLZPose(string name, string subpose)
+        {
+            if (checkLZPose(name))
+            {
+                return getLZPoseDictionary(name).checksubPose(subpose);
+            }
+            else
+            {
+                return false;
+            }
+        }
 
+
+        // Current/Target Rotation Methods //
         // Get LZPose euler rotation by x/y/z axis
         // - if no inputs active, this should be the mainpose
         // - if input is active, this should be the active one
@@ -514,6 +514,28 @@ namespace ResponsiveControllerPlugin
         public void removePoseBone(int boneNum, string name)
         {
             loadedPose.removeBone(boneNum, name);
+        }
+
+        /* These lets you specify a specific pose to change
+         */
+        public void setPoseBone(LZPose pose, int boneNum, VNyanVector3 vector)
+        {
+            pose.setBone(boneNum, vector);
+        }
+
+        public void setPoseBone(LZPose pose, int boneNum, VNyanVector3 vector, string subpose)
+        {
+            pose.getsubPose(subpose).setBone(boneNum, vector);
+        }
+
+        public void removePoseBone(LZPose pose, int boneNum)
+        {
+            pose.removeBone(boneNum);
+        }
+
+        public void removePoseBone(LZPose pose, int boneNum, string subpose)
+        {
+            pose.getsubPose(subpose).removeBone(boneNum);
         }
 
         //
