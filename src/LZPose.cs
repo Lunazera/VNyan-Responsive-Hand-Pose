@@ -101,16 +101,17 @@ namespace ResponsiveControllerPlugin
         /// Gets BoneRotation checking for a subpose. If the subpose is found in the pose, it grabs that bone. Otherwise it gets the main pose bone
         /// </summary>
         /// <param name="boneNum">Bone Number</param>
-        /// <param name="name">Subpose name</param>
+        /// <param name="subpose">Subpose name</param>
         /// <returns></returns>
-        public BoneRotation getBone(int boneNum, string name)
+        public BoneRotation getBone(int boneNum, string subpose)
         {
-            if (checksubPose(name))
+            if (checksubPose(subpose))
             {
-                return getsubPose(name).getBone(boneNum);
+                return getsubPose(subpose).getBone(boneNum);
             } 
             else
             {
+                Debug.Log("The sub pose '" + subpose + "' wasn't found, using default pose");
                 return this.mainPose[boneNum];
             }
         }
@@ -120,9 +121,9 @@ namespace ResponsiveControllerPlugin
             return getBone(boneNum).getEulerRotation();
         }
 
-        public VNyanVector3 getBoneEulerRotation(int boneNum, string name)
+        public VNyanVector3 getBoneEulerRotation(int boneNum, string subpose)
         {
-            return getBone(boneNum, name).getEulerRotation();
+            return getBone(boneNum, subpose).getEulerRotation();
         }
 
         public VNyanQuaternion getBoneRotation(int boneNum)
@@ -130,9 +131,9 @@ namespace ResponsiveControllerPlugin
             return getBone(boneNum).getRotation();
         }
 
-        public VNyanQuaternion getBoneRotation(int boneNum, string name)
+        public VNyanQuaternion getBoneRotation(int boneNum, string subpose)
         {
-            return getBone(boneNum, name).getRotation();
+            return getBone(boneNum, subpose).getRotation();
         }
 
         /// <summary>
@@ -153,11 +154,11 @@ namespace ResponsiveControllerPlugin
         /// </summary>
         /// <param name="boneNum"></param>
         /// <param name="name"></param>
-        public void setBone(int boneNum, string name)
+        public void setBone(int boneNum, string subpose)
         {
             if (checksubPose(name))
             {
-                this.getsubPose(name).setBone(boneNum);
+                this.getsubPose(subpose).setBone(boneNum);
             }
         }
 
@@ -185,11 +186,11 @@ namespace ResponsiveControllerPlugin
         /// <param name="boneNum"></param>
         /// <param name="rotation"></param>
         /// <param name="name"></param>
-        public void setBone(int boneNum, VNyanVector3 rotation, string name)
+        public void setBone(int boneNum, VNyanVector3 rotation, string subpose)
         {
-            if (checksubPose(name))
+            if (checksubPose(subpose))
             {
-                this.getsubPose(name).setBone(boneNum, rotation);
+                this.getsubPose(subpose).setBone(boneNum, rotation);
             }
         }
 
@@ -205,9 +206,9 @@ namespace ResponsiveControllerPlugin
             }
         }
 
-        public void removeBone(int boneNum, string name)
+        public void removeBone(int boneNum, string subpose)
         {
-            if (checksubPose(name))
+            if (checksubPose(subpose))
             {
                 this.removeBone(boneNum);
             }
@@ -224,42 +225,42 @@ namespace ResponsiveControllerPlugin
         }
 
         /// <summary>
-        /// Creates new subpose within LZPose
+        /// Creates new subpose within pose
         /// </summary>
-        /// <param name="name"></param>
-        public void setsubPose(string name)
+        /// <param name="subpose"></param>
+        public void setsubPose(string subpose)
         {
-            if (!checksubPose(name))
+            if (!checksubPose(subpose))
             {
-                this.subPoses.Add(name, new LZPose(name));
+                this.subPoses.Add(subpose, new LZPose(subpose));
             }
         }
 
         /// <summary>
         /// Adds LZpose to subposes if it doesnt exist. If it does, then sets that pose to the new pose
         /// </summary>
-        /// <param name="name"></param>
-        public void setsubPose(string name, LZPose pose)
+        /// <param name="subpose"></param>
+        public void setsubPose(string subpose, LZPose pose)
         {
-            if (!checksubPose(name))
+            if (!checksubPose(subpose))
             {
-                this.subPoses.Add(name, pose);
+                this.subPoses.Add(subpose, pose);
             }
             else
             {
-                this.subPoses[name] = pose;
+                this.subPoses[subpose] = pose;
             }
         }
 
         /// <summary>
         /// Removes subpose within LZPose
         /// </summary>
-        /// <param name="name"></param>
-        public void removesubPose(string name)
+        /// <param name="subpose"></param>
+        public void removesubPose(string subpose)
         {
-            if (checksubPose(name))
+            if (checksubPose(subpose))
             {
-                this.subPoses.Remove(name);
+                this.subPoses.Remove(subpose);
             }
         }
 
@@ -267,9 +268,9 @@ namespace ResponsiveControllerPlugin
         /// Check if the subpose exists within the pose
         /// </summary>
         /// <returns>true or false</returns>
-        public bool checksubPose(string name)
+        public bool checksubPose(string subpose)
         {
-            return subPoses.ContainsKey(name);
+            return subPoses.ContainsKey(subpose);
         }
 
 
@@ -309,9 +310,9 @@ namespace ResponsiveControllerPlugin
         /// Gets out a single subpose
         /// </summary>
         /// <returns>single sub pose within LZpose</returns>
-        public LZPose getsubPose(string poseName)
+        public LZPose getsubPose(string subpose)
         {
-            return subPoses[poseName];
+            return subPoses[subpose];
         }
 
         /// <summary>
@@ -320,9 +321,9 @@ namespace ResponsiveControllerPlugin
         /// </summary>
         /// <param name="subposeName">string name of the subpose</param>
         /// <returns>int array of bone numbers</returns>
-        public int[] getsubPoseBoneNumbers(string subposeName)
+        public int[] getsubPoseBoneNumbers(string subpose)
         {
-            return getsubPose(subposeName).pose().Keys.ToArray();
+            return getsubPose(subpose).pose().Keys.ToArray();
         }
 
         
