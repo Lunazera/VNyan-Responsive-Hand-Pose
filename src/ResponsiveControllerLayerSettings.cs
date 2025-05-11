@@ -191,14 +191,6 @@ namespace ResponsiveControllerPlugin
         }
 
         /// <summary>
-        /// Updates the RotationsCurrent Dictionary by calling rotateCurrentTowardsTarget()
-        /// </summary>
-        public void updateRotationsCurrent()
-        {
-            rotateCurrentTowardsTarget();
-        }
-
-        /// <summary>
         /// Rotates every bone's Current rotation towards the Target using SLERP (spherical linear interpolation)
         /// This only should happen if the current rotation is actually different to the target.
         /// We convert to unity Quaternions to do the calculation, then convert back to VNyanQuaternions to save it.
@@ -367,7 +359,7 @@ namespace ResponsiveControllerPlugin
         }
 
         /// <summary>
-        /// Loads the Target Eulers dicitonary from the pose based on it's output
+        /// Loads the Target Eulers dictionary from the pose based on it's output
         /// </summary>
         /// <param name="pose"></param>
         public void loadTargetPose(LZPose pose, List<string> subposes)
