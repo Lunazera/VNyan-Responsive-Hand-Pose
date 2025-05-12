@@ -5,6 +5,8 @@ using System;
 using System.Reflection;
 using System.Runtime;
 
+// Currently broken/not updated
+
 namespace ResponsiveControllerPlugin.UI
 {
     class LZ_FingerSliders : MonoBehaviour

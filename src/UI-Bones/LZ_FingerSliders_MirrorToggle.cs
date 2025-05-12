@@ -3,6 +3,8 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using System;
 
+// Currently broken/not updated
+
 namespace ResponsiveControllerPlugin.UI
 {
     class LZ_FingerSliders_MirrorToggle: MonoBehaviour
