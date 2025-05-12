@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Runtime;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace ControllerPose
+namespace ResponsiveControllerPlugin.UI
 {
     class LZ_FingerInput : MonoBehaviour
     {
@@ -13,12 +14,12 @@ namespace ControllerPose
         public int axis;
         public float fieldValue = 0;
         public bool flipSides = false;
-        public string conditionName = "default";
         private InputField mainField;
         private Button mainButton;
 
         public void Start()
         {
+            ResponsiveControllerLayerSettings layerSettings = ResponsiveControllerPlugin.getLayerSettings();
             // We add the inputfield as the mainfield
             mainField = GetComponent(typeof(InputField)) as InputField;
             // We add a button as confirmation to change the inputted value
@@ -27,16 +28,9 @@ namespace ControllerPose
             // We add a listener that will run ButtonPressCheck if the button is pressed.
             mainButton.onClick.AddListener(delegate { ButtonPressCheck(); });
 
-            if (ResponsiveControllerSettings.checkInputCondition(conditionName)) 
-            {
-                fieldValue = ResponsiveControllerSettings.getFingerEulerAxis(boneNum, axis, conditionName);
-                mainField.text = Convert.ToString(fieldValue);
-            }
-            else
-            {
-                mainField.text = Convert.ToString(fieldValue);
-            }
+            fieldValue = layerSettings.getPoseBoneAxis(boneNum, axis);
 
+            mainField.text = Convert.ToString(fieldValue);
         }
 
         public void ButtonPressCheck()
@@ -49,9 +43,12 @@ namespace ControllerPose
             }
             else
             {
+                ResponsiveControllerLayerSettings layerSettings = ResponsiveControllerPlugin.getLayerSettings();
                 // If the value was not able to be converted we just want to show the current value.
                 // This overwrites what the user typed.
-                mainField.text = Convert.ToString(ResponsiveControllerSettings.getFingerEulerAxis(boneNum, axis, conditionName));
+                fieldValue = layerSettings.getPoseBoneAxis(boneNum, axis);
+
+                mainField.text = Convert.ToString(fieldValue);
             }
         }
     }

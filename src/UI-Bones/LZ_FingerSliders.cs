@@ -3,8 +3,11 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using System;
 using System.Reflection;
+using System.Runtime;
 
-namespace ControllerPose
+// Currently broken/not updated
+
+namespace ResponsiveControllerPlugin.UI
 {
     class LZ_FingerSliders : MonoBehaviour
     {
@@ -106,7 +109,7 @@ namespace ControllerPose
                     DistalBone = 38;
                     break;
             }
-            Debug.Log("LZ_Controller: Slider" + FingerBone + " bone numbers set to " + ProximalBone + ", " + MiddleBone + ", " + DistalBone);
+            if (ResponsiveControllerPlugin.getLayerSettings().isDebug()) Debug.Log("LZ_Controller: Slider" + FingerBone + " bone numbers set to " + ProximalBone + ", " + MiddleBone + ", " + DistalBone);
         }
 
         public int getFingerBones(int boneSegment, float MirrorSide)
@@ -158,7 +161,7 @@ namespace ControllerPose
             // Add remove button listners
             RemoveBone.onClick.AddListener(delegate { RemoveButtonClicked(); });
 
-            if (ResponsiveControllerSettings.checkInputCondition(InputCondition))
+            if (ResponsiveControllerPlugin.getLayerSettings().checkInputCondition(InputCondition))
             {
                 loadSliderValues();
             }
@@ -194,7 +197,8 @@ namespace ControllerPose
                 }
 
                 // Check if setting exists & create if not
-                ResponsiveControllerSettings.addInputCondition(InputCondition);
+                ResponsiveControllerLayerSettings settings = ResponsiveControllerPlugin.getLayerSettings();
+                settings.addInputCondition(InputCondition);
 
                 switch (sliderNum)
                 {
@@ -232,29 +236,31 @@ namespace ControllerPose
 
                 if (mirrorSides == 0f)
                 {
-                    Debug.Log("Slider Value change: bones " + sliderBoneNum + " & " + (sliderBoneNum + 15) + "-" + sliderAxis + " -> " + slider_value);
-                    ResponsiveControllerSettings.setFingerSettingsAxisMirror(sliderBoneNum, sliderAxis, slider_value, valueFlip, InputCondition);
+                    if (settings.isDebug()) Debug.Log("Slider Value change: bones " + sliderBoneNum + " & " + (sliderBoneNum + 15) + "-" + sliderAxis + " -> " + slider_value);
+                    settings.setFingerSettingsAxisMirror(sliderBoneNum, sliderAxis, slider_value, valueFlip, InputCondition);
                 }
                 else if (mirrorSides == 1f)
                 {
-                    Debug.Log("Slider Value change: bone " + sliderBoneNum + "-" + sliderAxis + " -> " + slider_value);
-                    ResponsiveControllerSettings.setFingerSettingsAxis(sliderBoneNum, sliderAxis, slider_value, InputCondition);
+                    if (settings.isDebug()) Debug.Log("Slider Value change: bone " + sliderBoneNum + "-" + sliderAxis + " -> " + slider_value);
+                    settings.setFingerSettingsAxis(sliderBoneNum, sliderAxis, slider_value, InputCondition);
                 }
                 else
                 {
                     slider_value = valueFlip ? slider_value : -slider_value;
-                    Debug.Log("Slider Value change: bone " + sliderBoneNum + "-" + sliderAxis + " -> " + slider_value);
-                    ResponsiveControllerSettings.setFingerSettingsAxis(sliderBoneNum, sliderAxis, slider_value, InputCondition);
+                    if (settings.isDebug()) Debug.Log("Slider Value change: bone " + sliderBoneNum + "-" + sliderAxis + " -> " + slider_value);
+                    settings.setFingerSettingsAxis(sliderBoneNum, sliderAxis, slider_value, InputCondition);
                 }
             }
         }
 
         public void loadSliderValues()
         {
-            sliderSettingFlag = true; // flag to stop slider from calling this as we load/change new values
+            sliderSettingFlag = true; // flag to stop slider from calling this as we load/change new values\
 
             string condition = "default";
-            if (ResponsiveControllerSettings.checkInputCondition(InputCondition))
+
+            ResponsiveControllerLayerSettings settings = ResponsiveControllerPlugin.getLayerSettings();
+            if (settings.checkInputCondition(InputCondition))
             {
                 condition = InputCondition;
             }
@@ -274,7 +280,7 @@ namespace ControllerPose
 
             (float proximal, float middle, float distal, float splay, float twist, bool boneFound) sliderCurrentValues;
 
-            sliderCurrentValues = ResponsiveControllerSettings.GetFingerInputRotations(getFingerBones(0, mirrorSides), CurlAxis, SplayAxis, TwistAxis, flipSides, flipSplaySides, flipTwistSides, condition);
+            sliderCurrentValues = settings.GetFingerInputRotations(getFingerBones(0, mirrorSides), CurlAxis, SplayAxis, TwistAxis, flipSides, flipSplaySides, flipTwistSides, condition);
 
             if (invertTemp)
             {
@@ -307,7 +313,7 @@ namespace ControllerPose
                 Twist.value = sliderCurrentValues.twist;
             }
 
-            Debug.Log("LZ_Controller: Slider " + FingerBone + " loaded -> " + Proximal.value + ", " + Middle.value + ", " + Distal.value + ", " + Splay.value + ", " + Twist.value);
+            if (settings.isDebug()) Debug.Log("LZ_Controller: Slider " + FingerBone + " loaded -> " + Proximal.value + ", " + Middle.value + ", " + Distal.value + ", " + Splay.value + ", " + Twist.value);
             sliderSettingFlag = false;
         }
 
@@ -315,6 +321,8 @@ namespace ControllerPose
         {
             int sliderBoneNum = 0;
             int sliderAxis = CurlAxis;
+
+            ResponsiveControllerLayerSettings settings = ResponsiveControllerPlugin.getLayerSettings();
 
             switch (sliderNum)
             {
@@ -344,8 +352,8 @@ namespace ControllerPose
                     sliderAxis = TwistAxis;
                     break;
             }
-            Debug.Log("LZ_Controller: Slider " + FingerBone + " bone " + sliderBoneNum + "-" + sliderAxis + " reset!");
-            ResponsiveControllerSettings.resetFingerSettingsAxis(sliderBoneNum, sliderAxis, InputCondition);
+            if (settings.isDebug()) Debug.Log("LZ_Controller: Slider " + FingerBone + " bone " + sliderBoneNum + "-" + sliderAxis + " reset!");
+            settings.resetFingerSettingsAxis(sliderBoneNum, sliderAxis, InputCondition);
         }
         public void RemoveButtonClicked()
         {
@@ -355,40 +363,42 @@ namespace ControllerPose
             Splay.value = defaultValue;
             Twist.value = defaultValue;
 
+            ResponsiveControllerLayerSettings settings = ResponsiveControllerPlugin.getLayerSettings();
+
             // Call reset finger methods depending on finger
             if (mirrorSides == 0f)
             {
-                ResponsiveControllerSettings.resetFingerSettingsAxisMirror(getFingerBones(0, mirrorSides), CurlAxis, InputCondition);
-                ResponsiveControllerSettings.resetFingerSettingsAxisMirror(getFingerBones(1, mirrorSides), CurlAxis, InputCondition);
-                ResponsiveControllerSettings.resetFingerSettingsAxisMirror(getFingerBones(2, mirrorSides), CurlAxis, InputCondition);
-                ResponsiveControllerSettings.resetFingerSettingsAxisMirror(getFingerBones(0, mirrorSides), SplayAxis, InputCondition);
-                ResponsiveControllerSettings.resetFingerSettingsAxisMirror(getFingerBones(0, mirrorSides), TwistAxis, InputCondition);
+                settings.resetFingerSettingsAxisMirror(getFingerBones(0, mirrorSides), CurlAxis, InputCondition);
+                settings.resetFingerSettingsAxisMirror(getFingerBones(1, mirrorSides), CurlAxis, InputCondition);
+                settings.resetFingerSettingsAxisMirror(getFingerBones(2, mirrorSides), CurlAxis, InputCondition);
+                settings.resetFingerSettingsAxisMirror(getFingerBones(0, mirrorSides), SplayAxis, InputCondition);
+                settings.resetFingerSettingsAxisMirror(getFingerBones(0, mirrorSides), TwistAxis, InputCondition);
 
-                Debug.Log("LZ_Controller: Slider " + FingerBone + " L&R bones reset!");
+                if(settings.isDebug()) Debug.Log("LZ_Controller: Slider " + FingerBone + " L&R bones reset!");
             } 
             else if (mirrorSides == 1f) {
-                ResponsiveControllerSettings.resetFingerSettingsAxis(getFingerBones(0, mirrorSides), CurlAxis, InputCondition);
-                ResponsiveControllerSettings.resetFingerSettingsAxis(getFingerBones(1, mirrorSides), CurlAxis, InputCondition);
-                ResponsiveControllerSettings.resetFingerSettingsAxis(getFingerBones(2, mirrorSides), CurlAxis, InputCondition);
-                ResponsiveControllerSettings.resetFingerSettingsAxis(getFingerBones(0, mirrorSides), SplayAxis, InputCondition);
-                ResponsiveControllerSettings.resetFingerSettingsAxis(getFingerBones(0, mirrorSides), TwistAxis, InputCondition);
+                settings.resetFingerSettingsAxis(getFingerBones(0, mirrorSides), CurlAxis, InputCondition);
+                settings.resetFingerSettingsAxis(getFingerBones(1, mirrorSides), CurlAxis, InputCondition);
+                settings.resetFingerSettingsAxis(getFingerBones(2, mirrorSides), CurlAxis, InputCondition);
+                settings.resetFingerSettingsAxis(getFingerBones(0, mirrorSides), SplayAxis, InputCondition);
+                settings.resetFingerSettingsAxis(getFingerBones(0, mirrorSides), TwistAxis, InputCondition);
 
-                Debug.Log("LZ_Controller: Slider " + FingerBone + " Left bones reset!");
+                if(settings.isDebug()) Debug.Log("LZ_Controller: Slider " + FingerBone + " Left bones reset!");
             }
             else
             {
-                ResponsiveControllerSettings.resetFingerSettingsAxis(getFingerBones(0, mirrorSides), CurlAxis, InputCondition);
-                ResponsiveControllerSettings.resetFingerSettingsAxis(getFingerBones(1, mirrorSides), CurlAxis, InputCondition);
-                ResponsiveControllerSettings.resetFingerSettingsAxis(getFingerBones(2, mirrorSides), CurlAxis, InputCondition);
-                ResponsiveControllerSettings.resetFingerSettingsAxis(getFingerBones(0, mirrorSides), SplayAxis, InputCondition);
-                ResponsiveControllerSettings.resetFingerSettingsAxis(getFingerBones(0, mirrorSides), TwistAxis, InputCondition);
+                settings.resetFingerSettingsAxis(getFingerBones(0, mirrorSides), CurlAxis, InputCondition);
+                settings.resetFingerSettingsAxis(getFingerBones(1, mirrorSides), CurlAxis, InputCondition);
+                settings.resetFingerSettingsAxis(getFingerBones(2, mirrorSides), CurlAxis, InputCondition);
+                settings.resetFingerSettingsAxis(getFingerBones(0, mirrorSides), SplayAxis, InputCondition);
+                settings.resetFingerSettingsAxis(getFingerBones(0, mirrorSides), TwistAxis, InputCondition);
 
-                Debug.Log("LZ_Controller: Slider " + FingerBone + " Right bones reset!");
+                if (settings.isDebug()) Debug.Log("LZ_Controller: Slider " + FingerBone + " Right bones reset!");
             }
             
             if ( !(InputCondition == "default") )
             {
-                ResponsiveControllerSettings.removeInputCondition(InputCondition);
+                settings.removeInputCondition(InputCondition);
             }
         }
     }

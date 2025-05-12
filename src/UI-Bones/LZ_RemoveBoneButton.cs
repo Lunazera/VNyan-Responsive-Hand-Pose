@@ -3,18 +3,16 @@ using UnityEngine.UI;
 using Newtonsoft.Json;
 using System.IO;
 using UnityEngine.EventSystems;
-using ControllerPose;
 
 // Removes bone from our setting when clicked
 // Cannot apply to base/default settings
 
-namespace TrackingSmoothing
+namespace ResponsiveControllerPlugin.UI
 {
     class LZ_RemoveBone : MonoBehaviour
     {
         private Button removeButton;
         public int boneNum;
-        public string conditionName = "default";
 
         public void Start()
         {
@@ -26,10 +24,8 @@ namespace TrackingSmoothing
 
         public void RemoveButtonClicked()
         {
-            if (conditionName != "default")
-            {
-                ResponsiveControllerSettings.removeInputBone(conditionName, boneNum);
-            }
+            ResponsiveControllerLayerSettings layerSettings = ResponsiveControllerPlugin.getLayerSettings();
+            layerSettings.removePoseBone(boneNum);
         }
     }
 }

@@ -1,16 +1,16 @@
 ﻿using System;
 using UnityEngine;
-using VNyanInterface;
-using ControllerPose;
-using System.Collections.Generic;
-using Newtonsoft.Json;
+using ResponsiveControllerPlugin.UI;
 
 namespace ResponsiveControllerPlugin
 {
    public class ResponsiveControllerPlugin : MonoBehaviour
     {
+        //Set this to false for production
+        public static bool debugEnabled = true;
+
         // Set up pose layer according to our class
-        IPoseLayer ResponsiveControllerLayer = new ControllerPose.ResponsiveControllerLayer();
+        private static ResponsiveControllerLayer responsiveControllerLayer = new ResponsiveControllerLayer(debugEnabled);
 
         public string paramNameLayerActive = "LZ_ControllerPoseActive";
         private float LayerActive = 1f;
@@ -19,11 +19,20 @@ namespace ResponsiveControllerPlugin
         public string paramNameSpeed = "LZ_ControllerPoseSpeed";
         private float Speed = 10f;
         private float Speed_new = 10f;
+        public static ResponsiveControllerLayer getLayer()
+        {
+            return responsiveControllerLayer;
+        }
+
+        public static ResponsiveControllerLayerSettings getLayerSettings()
+        {
+            return responsiveControllerLayer.getSettings();
+        }
 
         public void Start()
         {
             // Register Pose Layer for VNyan to listen to
-            VNyanInterface.VNyanInterface.VNyanAvatar.registerPoseLayer(ResponsiveControllerLayer);
+            VNyanInterface.VNyanInterface.VNyanAvatar.registerPoseLayer(responsiveControllerLayer);
 
             // Parameter management //
             // Layer Toggle
@@ -32,7 +41,7 @@ namespace ResponsiveControllerPlugin
                 LayerActive = Convert.ToSingle(LZ_UI.settings[paramNameLayerActive]);
             }
             VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat(paramNameLayerActive, LayerActive);
-            ResponsiveControllerSettings.setLayerOnOff(LayerActive);
+            getLayerSettings().setLayerOnOff(LayerActive);
 
             // Speed, Slerp Amount
             if (LZ_UI.settings.ContainsKey(paramNameSpeed))
@@ -40,7 +49,9 @@ namespace ResponsiveControllerPlugin
                 Speed = Convert.ToSingle(LZ_UI.settings[paramNameSpeed]);
             }
             VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat(paramNameSpeed, Speed);
-            ResponsiveControllerSettings.setSlerpAmount(Speed);
+            getLayerSettings().setSlerpAmount(Speed);
+
+            if(debugEnabled) VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("LZ_ResponsiveControllerPluginLoaded", 1.0f);
         }
 
         public void Update()
@@ -48,7 +59,7 @@ namespace ResponsiveControllerPlugin
             // Only run once avatar is loaded in
             if ( !(VNyanInterface.VNyanInterface.VNyanAvatar == null) )
             {
-                ResponsiveControllerSettings.getInputStatesFromVNyan();
+                getLayerSettings().getInputStatesFromVNyan();
             }
 
             // Parameter management //
@@ -57,14 +68,14 @@ namespace ResponsiveControllerPlugin
             if ( !(LayerActive_new == LayerActive) )
             {
                 LayerActive = LayerActive_new;
-                ResponsiveControllerSettings.setLayerOnOff(LayerActive);
+                getLayerSettings().setLayerOnOff(LayerActive);
             }
             // Speed, Slerp Amount
             Speed_new = VNyanInterface.VNyanInterface.VNyanParameter.getVNyanParameterFloat(paramNameSpeed);
             if ( !(Speed_new == Speed) )
             {
                 Speed = Speed_new;
-                ResponsiveControllerSettings.setSlerpAmount(Speed);
+                getLayerSettings().setSlerpAmount(Speed);
             }
         }
     }

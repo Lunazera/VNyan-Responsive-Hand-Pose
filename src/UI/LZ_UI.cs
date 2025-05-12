@@ -10,9 +10,8 @@ using System;
 using System.Security;
 
 // UI Core
-// modified from Sjatar's UI code example for VNyan Plugin UI's: https://github.com/Sjatar/Screen-Light
 
-namespace ControllerPose
+namespace ResponsiveControllerPlugin.UI
 {
     // VNyanInterface.IButtonClickHandler gives access to pluginButtonClicked
     public class LZ_UI : MonoBehaviour, VNyanInterface.IButtonClickedHandler
@@ -23,7 +22,7 @@ namespace ControllerPose
         public string setting_name;
         public string plugin_name;
 
-        public static Dictionary<string, string> settings = new Dictionary<string, string>();
+        public static Dictionary<string, string> settingsJSON = new Dictionary<string, string>();
 
         // This happens when VNyan starts.
         public void Awake()
@@ -44,28 +43,13 @@ namespace ControllerPose
         {
             if (null != VNyanInterface.VNyanInterface.VNyanSettings.loadSettings(setting_name))
             {
-                Debug.Log("LZ_Controller: Settings file found! loading settings...");
-                settings = VNyanInterface.VNyanInterface.VNyanSettings.loadSettings(setting_name);
-                if (settings.ContainsKey("fingerPoses"))
-                {
-                    ResponsiveControllerSettings.fingerPoses = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<int, VNyanVector3>>>(settings["fingerPoses"]);
-                }
-                if ( settings.ContainsKey("fingerInputs") )
-                {
-                    ResponsiveControllerSettings.fingerInputs = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<int, VNyanVector3>>>(settings["fingerInputs"]);
-                }
-                if ( settings.ContainsKey("fingerInputStates") )
-                {
-                    ResponsiveControllerSettings.fingerInputStates = JsonConvert.DeserializeObject<Dictionary<string, float>>(settings["fingerInputStates"]);
-                }
-                if ( settings.ContainsKey("fingerInputConditions") )
-                {
-                    ResponsiveControllerSettings.fingerInputConditions = JsonConvert.DeserializeObject<List<string>>(settings["fingerInputConditions"]);
+                ResponsiveControllerLayerSettings layerSettings = ResponsiveControllerPlugin.getLayerSettings();
 
-                    foreach (string condition in ResponsiveControllerSettings.fingerInputConditions)
-                    {
-                        VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat(ResponsiveControllerSettings.prefix + condition, 0f);
-                    }
+                Debug.Log("LZ_Controller: Settings file found! loading settings...");
+                settingsJSON = VNyanInterface.VNyanInterface.VNyanSettings.loadSettings(setting_name);
+                if (settingsJSON.ContainsKey("LZPoseDictionary"))
+                {
+                    layerSettings.LoadPosesDictionary(settingsJSON["LZPoseDictionary"]);
                 }
             }
         }

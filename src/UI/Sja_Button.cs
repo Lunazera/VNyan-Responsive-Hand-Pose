@@ -3,7 +3,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using System;
 
-namespace ControllerPose
+namespace ResponsiveControllerPlugin.UI
 {
     class Sja_Button : MonoBehaviour
     {
@@ -77,7 +77,7 @@ namespace ControllerPose
             if (buttonState == 0f)
             {
                 buttonState = 1f;
-                LZ_UI.settings[buttonName] = Convert.ToString(buttonState);
+                LZ_UI.settingsJSON[buttonName] = Convert.ToString(buttonState);
                 VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat(buttonName, buttonState);
                 ChangeButtonColor(true);
             }
@@ -85,7 +85,7 @@ namespace ControllerPose
             else
             {
                 buttonState = 0f;
-                LZ_UI.settings[buttonName] = Convert.ToString(buttonState);
+                LZ_UI.settingsJSON[buttonName] = Convert.ToString(buttonState);
                 VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat(buttonName, buttonState);
                 ChangeButtonColor(false);
             }

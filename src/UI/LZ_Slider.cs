@@ -3,7 +3,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using System;
 
-namespace ControllerPose
+namespace ResponsiveControllerPlugin.UI
 {
     class LZ_Slider : MonoBehaviour
     {
@@ -11,7 +11,6 @@ namespace ControllerPose
         public int axis;
         public bool invert = false;
         public bool flipSides = false;
-        public string conditionName = "default";
         public bool mirrorSides = false;
 
         public Button mainButton;
@@ -31,14 +30,8 @@ namespace ControllerPose
             // We add a listener, it will run ValueChangeCheck when the value changes on the slider!
             mainSlider.onValueChanged.AddListener(delegate {ValueChangeCheck(); });
 
-            if (ResponsiveControllerSettings.checkInputCondition(conditionName))
-            {
-                mainSlider.value = ResponsiveControllerSettings.getFingerEulerAxis(boneNum, axis, conditionName);
-            }
-            else
-            {
-                mainSlider.value = default_value;
-            }
+            ResponsiveControllerLayerSettings layerSettings = ResponsiveControllerPlugin.getLayerSettings();
+            mainSlider.value = layerSettings.getPoseBoneAxis(boneNum, axis);
         }
         
         public void ValueChangeCheck()
@@ -46,19 +39,10 @@ namespace ControllerPose
             float slider_value = invert ? -mainSlider.value : mainSlider.value;
 
             // Check if setting exists & create if not
-            ResponsiveControllerSettings.addInputCondition(conditionName);
+            ResponsiveControllerLayerSettings layerSettings = ResponsiveControllerPlugin.getLayerSettings();
 
-            // Check if setting for bone exists within setting & create if not
-            ResponsiveControllerSettings.addInputBone(conditionName, boneNum);
-
-            if (mirrorSides)
-            {
-                //ResponsiveControllerSettings.setFingerSettingsAxisMirror(boneNum, axis, slider_value, conditionName);
-            } 
-            else
-            {
-                //ResponsiveControllerSettings.setFingerSettingsAxis(boneNum, axis, slider_value, conditionName);
-            }
+            layerSettings.setPoseBoneAxis(boneNum, axis, slider_value);
+ 
         }
 
         public void ButtonPressCheck()
