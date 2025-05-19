@@ -31,6 +31,7 @@ namespace ResponsiveControllerPlugin
         private string currentPoseName;
         private string currentSubposeName;
 
+
         // VNyan Get Methods, VNyan uses these to get the pose after doUpdate()
 
         /**
@@ -125,20 +126,18 @@ namespace ResponsiveControllerPlugin
              * UI settings
             */
 
+            string incomingPose = VNyanInterface.VNyanInterface.VNyanParameter.getVNyanParameterString("LZPose");
+
             // If pose name changes, we will load that new pose
-            if (!(currentPoseName == poseName)) 
+            if (!(currentPoseName == incomingPose)) 
             {
-                settings.loadLZPose(poseName);
+                settings.loadLZPose(incomingPose);
+                currentPoseName = incomingPose;
             }
 
-            // If subpose name changes, we will also load that new pose
-            if (!(currentSubposeName == subposeName))
-            {
-                settings.loadLZPose(poseName, subposeName);
-            }
 
             // Get in the target Euler dictionary, calls "getposeoutput"
-            settings.loadTargetPose(new List<string> { subposeName });
+            settings.loadTargetPose(new List<string> { incomingsubPose });
 
             // Convert Target Eulers to Target Quaternion
             settings.updateRotationsTarget();

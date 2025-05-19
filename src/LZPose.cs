@@ -7,12 +7,20 @@ using VNyanInterface;
 
 namespace ResponsiveControllerPlugin
 {
+    /* TODO
+    * getting input list...
+    * - Needs a way to include Sub-Sub poses in the list 
+    * - Make sure that when we are getting the output vector, we are going into sub-sub poses
+    * - We should take input int or float as scalar multiplier to vectors
+    * - We should mix/average overlapping bone vectors when they are present
+    */
+
     class LZPose
     {
-        //Name of the pose. 
-        private String name;
+        // Name of the pose. 
+        private string name;
 
-        //A dictionary of bone rotations that apply to this pose
+        // A dictionary of bone rotations that apply to this pose
         private Dictionary<int, BoneRotation> mainPose = new Dictionary<int, BoneRotation>();
 
         private Dictionary<string, LZPose> subPoses = new Dictionary<string, LZPose> { };
@@ -21,7 +29,7 @@ namespace ResponsiveControllerPlugin
         /// Creates a new pose with no bones.
         /// </summary>
         /// <param name="name">Pose name</param>
-        public LZPose(String name)
+        public LZPose(string name)
         {
             this.name = name;
         }
@@ -31,7 +39,7 @@ namespace ResponsiveControllerPlugin
         /// </summary>
         /// <param name="name"></param>
         /// <param name="bones"></param>
-        public LZPose(String name, ICollection<int> bones)
+        public LZPose(string name, ICollection<int> bones)
         {
             this.name = name;
             foreach (var ele in bones)
@@ -45,7 +53,7 @@ namespace ResponsiveControllerPlugin
         /// </summary>
         /// <param name="name"></param>
         /// <param name="mainPose"></param>
-        public LZPose(String name, ICollection<BoneRotation> mainPose)
+        public LZPose(string name, ICollection<BoneRotation> mainPose)
         {
             this.name = name;
             foreach (var ele in mainPose)
@@ -57,7 +65,7 @@ namespace ResponsiveControllerPlugin
         /**
          * Creates a new pose with a given dictionary of finger inputs.
          */
-        public LZPose(String name, Dictionary<int, BoneRotation> mainPose)
+        public LZPose(string name, Dictionary<int, BoneRotation> mainPose)
         {
             this.name = name;
             this.mainPose = mainPose;
@@ -66,7 +74,7 @@ namespace ResponsiveControllerPlugin
         /**
          * Creates a new pose with a list of bones, but no finger inputs, and a set of input poses.
          */
-        public LZPose(String name, ICollection<int> bones, Dictionary<string, LZPose> subPoses) : this(name, bones)
+        public LZPose(string name, ICollection<int> bones, Dictionary<string, LZPose> subPoses) : this(name, bones)
         {
             this.subPoses = subPoses;
         }
@@ -74,7 +82,7 @@ namespace ResponsiveControllerPlugin
         /**
          * Creates a new pose with a given set of finger inputs, and a set of input poses.
          */
-        public LZPose(String name, ICollection<BoneRotation> mainPose, Dictionary<string, LZPose> subPoses): this(name, mainPose)
+        public LZPose(string name, ICollection<BoneRotation> mainPose, Dictionary<string, LZPose> subPoses): this(name, mainPose)
         {
             this.subPoses = subPoses;
         }
@@ -82,7 +90,7 @@ namespace ResponsiveControllerPlugin
         /**
          * Creates a new pose with a given dictionary of finger inputs, and a set of input poses.
          */
-        public LZPose(String name, Dictionary<int, BoneRotation> mainPose, Dictionary<string, LZPose> subPoses) : this(name, mainPose)
+        public LZPose(string name, Dictionary<int, BoneRotation> mainPose, Dictionary<string, LZPose> subPoses) : this(name, mainPose)
         {
             this.subPoses = subPoses;
         }
@@ -276,7 +284,7 @@ namespace ResponsiveControllerPlugin
 
         //Getters
 
-        public String getName()
+        public string getName()
         {
             return name;
         }
@@ -339,7 +347,7 @@ namespace ResponsiveControllerPlugin
 
         //Setters
 
-        public void setName(String name)
+        public void setName(string name)
         {
             this.name = name;
         }
@@ -403,6 +411,26 @@ namespace ResponsiveControllerPlugin
 
             return meanBones;
         }
+
+        /* TODO
+         * - Vector interpolation should be an option/setting for subposes in some way
+         * - if unchecked, when overlapping rotations, take only last in list
+         * - if checked, linearly combine the vectors
+         * We need to know which parameter to check against
+         * - Everything that uses this input will get interpolated together.
+         * 
+         * IE Joystick
+         * - DefaultRight
+         * - - x+ x- y+ y-
+         * - - These four subposes will set 'DefaultRight' as their comparison
+         * note... luna meant "compare against name of parameter"
+         * 
+         * BUT 
+         * we can do sub-poses of sub-poses 
+         */
+
+
+
 
         /// <summary>
         /// 

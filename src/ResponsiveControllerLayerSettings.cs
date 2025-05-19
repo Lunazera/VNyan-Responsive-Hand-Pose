@@ -98,6 +98,10 @@ namespace ResponsiveControllerPlugin
 
         public void setLoadedPose(string name)
         {
+            // References entry in dictionary LZPoseDict (same address)
+            // If Dictionary entry is changed, this will follow through to loadedPose
+            // If entry is deleted, this *wont* be reflected in loaded pose, it'll still reference previous entry
+            // - would need to reload pose
             if (checkLZPose(name))
             {
                 this.loadedPose = this.LZPoseDictionary[name];
