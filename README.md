@@ -1,4 +1,6 @@
 # VNyan Responsive Hand Posing
+[![VNyan](https://img.shields.io/badge/Made%20for-VNyan-%23fc65e6?color=%23fc65e6)](https://suvidriel.itch.io/vnyan)
+![TransBadge](https://pride-badges.pony.workers.dev/static/v1?label=trans%20rights&stripeWidth=6&stripeColors=5BCEFA,F5A9B8,FFFFFF,F5A9B8,5BCEFA)
 
 ControllerPose.cs is the main codebase that does everything
 
